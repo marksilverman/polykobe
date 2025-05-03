@@ -1,5 +1,24 @@
 const φ = (1 + Math.sqrt(5)) / 2;
 const π = Math.pi;
+const edges = [
+    [0, 1], [0, 5], [0, 7], [0, 10], [0, 11],
+    [1, 5], [1, 7], [1, 8], [1, 9],
+    [2, 3], [2, 4], [2, 6], [2, 10], [2, 11],
+    [3, 4], [3, 6], [3, 8], [3, 9],
+    [4, 5], [4, 9], [4, 11],
+    [5, 9], [5, 11],
+    [6, 7], [6, 8], [6, 10],
+    [7, 8], [7, 10],
+    [8, 9],
+    [10, 11]
+];
+
+const faces = [
+    [0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
+    [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
+    [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
+    [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]
+];
 
 var canvas = document.querySelector('#canvas');
 var ctx = canvas.getContext('2d');
@@ -42,6 +61,8 @@ var colorMgr =
         [this.green, this.gadd] = this.add(this.green, this.gadd);
         [this.blue, this.badd] = this.add(this.blue, this.badd);
         this.fgColor='rgba(' + this.red + ',' + this.green + ',' + this.blue + ')';
+        this.faceColor = this.fgColor;
+        this.edgeColor = 'rgba(100,100,100)';
     }
 }
 
@@ -63,14 +84,22 @@ function rotate(xyz, center)
     vec3.rotateZ(xyz, xyz, center, camZ);
 }
 
+function isFaceVisible(v0, v1, v2)
+{
+    const u = vec3.subtract([], v1, v0);
+    const v = vec3.subtract([], v2, v0);
+    const normal = vec3.cross([], u, v);
+    return normal[2] < 0;
+}
+
 function drawScene()
 {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     colorMgr.next();
 
     ctx.save();
-    ctx.translate(canvas.width * 0.5, canvas.height * 0.5);
-    ctx.beginPath();
+    // ctx.translate(canvas.width * 0.5, canvas.height * 0.5);
+    // ctx.beginPath();
 
     let center = [ 0.0, 0.0, 0.0 ];
 
@@ -91,22 +120,33 @@ function drawScene()
         [ scale * -φ, 0, scale *  1 ]
     ];
 
-    const edges = [
-        [0, 1], [0, 5], [0, 7], [0, 10], [0, 11],
-        [1, 5], [1, 7], [1, 8], [1, 9],
-        [2, 3], [2, 4], [2, 6], [2, 10], [2, 11],
-        [3, 4], [3, 6], [3, 8], [3, 9],
-        [4, 5], [4, 9], [4, 11],
-        [5, 9], [5, 11],
-        [6, 7], [6, 8], [6, 10],
-        [7, 8], [7, 10],
-        [8, 9],
-        [10, 11]
-    ];
-
     for (v of vertices)
         rotate(v, center);
 
+    for (const [a, b, c] of faces)
+    {
+        const v0 = vertices[a];
+        const v1 = vertices[b];
+        const v2 = vertices[c];
+        
+        if (!isFaceVisible(v0, v1, v2))
+            continue;
+        ctx.save();
+        ctx.translate(canvas.width * 0.5, canvas.height * 0.5);
+    
+        ctx.beginPath();
+        ctx.moveTo(v0[0], v0[1]);
+        ctx.lineTo(v1[0], v1[1]);
+        ctx.lineTo(v2[0], v2[1]);
+        ctx.closePath();
+        ctx.fillStyle = colorMgr.faceColor;
+        ctx.fill();
+        ctx.strokeStyle = colorMgr.edgeColor;
+        ctx.stroke();
+        ctx.restore();
+    }
+        
+    /*
     for (const [i, j] of edges)
     {
         ctx.moveTo(vertices[i][0], vertices[i][1]);
@@ -117,7 +157,7 @@ function drawScene()
     ctx.strokeStyle = colorMgr.fgColor;
     ctx.stroke();
     ctx.restore();
-
+*/
     if (speedOff)
     {
         if (offset > maxOffset)
