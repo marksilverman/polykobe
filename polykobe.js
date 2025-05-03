@@ -1,9 +1,12 @@
+const φ = (1 + Math.sqrt(5)) / 2;
+const π = Math.pi;
+
 var canvas = document.querySelector('#canvas');
 var ctx = canvas.getContext('2d');
 var camX = 0.0, camY = 0.0, camZ = 0.0;
 var proX = 0.28, proY = 0.0, proZ = -0.3333;
 var speedX = 0.01, speedY = 0.01, speedZ = 0.0;
-var scale = 60.0, speedOff = 0.0, speedOffSign = 1.0, lineWidth = 3, offset = 2.5, maxOffset = 4.0, loops = 60.0, raf = 0;
+var scale = 120.0, speedOff = 0.0, speedOffSign = 1.0, lineWidth = 3, offset = 2.5, maxOffset = 4.0, raf = 0;
 
 var colorMgr =
 {
@@ -53,6 +56,13 @@ function main()
     drawScene();
 }
 
+function rotate(xyz, center)
+{
+    vec3.rotateX(xyz, xyz, center, camX);
+    vec3.rotateY(xyz, xyz, center, camY);
+    vec3.rotateZ(xyz, xyz, center, camZ);
+}
+
 function drawScene()
 {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -62,35 +72,47 @@ function drawScene()
     ctx.translate(canvas.width * 0.5, canvas.height * 0.5);
     ctx.beginPath();
 
-    let angleX = 0.0, angleY = 0.0;
     let center = [ 0.0, 0.0, 0.0 ];
-    let oldxyz = [ 0.0, 0.0, 0.0 ];
 
-    for (let angleZ = 0.0; angleZ < loops * Math.PI; angleZ += 0.01)
+    vertices = [
+        [ scale * -1, scale *  φ , 0],
+        [ scale *  1, scale *  φ , 0],
+        [ scale * -1, scale * -φ , 0],
+        [ scale *  1, scale * -φ , 0],
+
+        [ 0, scale * -1, scale *  φ ],
+        [ 0, scale *  1, scale *  φ ],
+        [ 0, scale * -1, scale * -φ ],
+        [ 0, scale *  1, scale * -φ ],
+
+        [ scale *  φ, 0, scale * -1 ],
+        [ scale *  φ, 0, scale *  1 ],
+        [ scale * -φ, 0, scale * -1 ],
+        [ scale * -φ, 0, scale *  1 ]
+    ];
+
+    const edges = [
+        [0, 1], [0, 5], [0, 7], [0, 10], [0, 11],
+        [1, 5], [1, 7], [1, 8], [1, 9],
+        [2, 3], [2, 4], [2, 6], [2, 10], [2, 11],
+        [3, 4], [3, 6], [3, 8], [3, 9],
+        [4, 5], [4, 9], [4, 11],
+        [5, 9], [5, 11],
+        [6, 7], [6, 8], [6, 10],
+        [7, 8], [7, 10],
+        [8, 9],
+        [10, 11]
+    ];
+
+    for (v of vertices)
+        rotate(v, center);
+
+    for (const [i, j] of edges)
     {
-        angleX += proX / 1000.0;
-        angleY += proY / 1000.0;
-
-        // start with a circle
-        let xyz = [ scale * parseFloat(offset + Math.cos(angleZ)), scale * parseFloat(Math.sin(angleZ)), 0.0 ];
-
-        // rotate around Z to create a basic spirograph
-        vec3.rotateZ(xyz, xyz, center, angleZ * proZ);
-
-        // rotate around X and Y to move into 3d
-        vec3.rotateX(xyz, xyz, center, angleX);
-        vec3.rotateY(xyz, xyz, center, angleY);
-
-        // account for rotation of the camera
-        vec3.rotateX(xyz, xyz, center, camX);
-        vec3.rotateY(xyz, xyz, center, camY);
-        vec3.rotateZ(xyz, xyz, center, camZ);
-
-        if (angleZ == 0)
-            ctx.moveTo(xyz[0], xyz[1]);
-        else
-            ctx.lineTo(xyz[0], xyz[1]);
+        ctx.moveTo(vertices[i][0], vertices[i][1]);
+        ctx.lineTo(vertices[j][0], vertices[j][1]);
     }
+        
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = colorMgr.fgColor;
     ctx.stroke();
