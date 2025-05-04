@@ -40,50 +40,47 @@ function main()
         mat4.identity(rotationMatrix);
         redraw = true;
     });
-    
-    canvas.addEventListener("click", (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        const x = (e.clientX - rect.left) * scaleX - canvas.width * 0.5;
-        const y = (e.clientY - rect.top) * scaleY - canvas.height * 0.5;
 
-        const vertexList = defaultVertexList.map(v => v.slice());
-        for (const xyz of vertexList)
+    canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+    
+    canvas.addEventListener("mousedown", (e) =>
+    {
+        redraw = true;
+        if (e.button === 2)
         {
-            vec3.scale(xyz, xyz, scale);
-            vec3.transformMat4(xyz, xyz, rotationMatrix);
-        }
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX - canvas.width * 0.5;
+            const y = (e.clientY - rect.top) * scaleY - canvas.height * 0.5;
     
-        for (const face of faceList)
-        {
-            const v1 = vertexList[face.vidx1];
-            const v2 = vertexList[face.vidx2];
-            const v3 = vertexList[face.vidx3];
+            const vertexList = defaultVertexList.map(v => v.slice());
+            for (const xyz of vertexList) {
+                vec3.scale(xyz, xyz, scale);
+                vec3.transformMat4(xyz, xyz, rotationMatrix);
+            }
     
-            if (!isFaceVisible(v1, v2, v3)) continue;
+            for (const face of faceList) {
+                const v1 = vertexList[face.vidx1];
+                const v2 = vertexList[face.vidx2];
+                const v3 = vertexList[face.vidx3];
     
-            const p1 = [v1[0] + canvas.width * 0.5, v1[1] + canvas.height * 0.5];
-            const p2 = [v2[0] + canvas.width * 0.5, v2[1] + canvas.height * 0.5];
-            const p3 = [v3[0] + canvas.width * 0.5, v3[1] + canvas.height * 0.5];
-
-            if (pointInTriangle([x, y], v1, v2, v3))
-            {
-                if (face.locked == false)
-                {
-                    face.state = (face.state + 1) % stateList.length;
-                    redraw = true;
+                if (!isFaceVisible(v1, v2, v3)) continue;
+                if (pointInTriangle([x, y], v1, v2, v3)) {
+                    if (!face.locked) {
+                        face.state = (face.state + 1) % stateList.length;
+                    }
+                    break;
                 }
-                break;
             }
         }
-    });
-    
-    canvas.addEventListener("mousedown", (e) => {
-        redraw = true;
-        isDragging = true;
-        prevX = e.clientX;
-        prevY = e.clientY;
+
+        if (e.button === 0)
+        {
+            isDragging = true;
+            prevX = e.clientX;
+            prevY = e.clientY;
+        }
     });
     
     canvas.addEventListener("mouseup", () => {
