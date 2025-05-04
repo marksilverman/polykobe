@@ -1,4 +1,6 @@
 const φ = (1 + Math.sqrt(5)) / 2;
+const rotateBy = Math.PI / 3;
+
 const edgeColor = "orange";
 const defaultColor = "gray";
 const center = [ 0.0, 0.0, 0.0 ];
@@ -36,15 +38,51 @@ const defaultRotation = mat4.clone(rotationMatrix);
 let scale = 100.0, prevX = 0, prevY = 0;
 let isDragging = false, redraw = true;
 
+function animateRotation(axis, angle, steps = 20) {
+    let count = 0;
+    const stepAngle = angle / steps;
+    const rot = mat4.create();
+
+    function step()
+    {
+        if (count++ >= steps) return;
+        if (axis === 'x') mat4.fromXRotation(rot, stepAngle);
+        else if (axis === 'y') mat4.fromYRotation(rot, stepAngle);
+        else if (axis === 'z') mat4.fromZRotation(rot, stepAngle);
+        mat4.multiply(rotationMatrix, rot, rotationMatrix);
+        redraw = true;
+        requestAnimationFrame(step);
+    }
+
+    step();
+}
+
 main();
 
 function main()
 {
     if (!ctx) return alert("Your browser sucks.");
 
+    document.getElementById("rotateX").addEventListener("click", () => {
+        animateRotation('x', rotateBy);
+    });    
+    document.getElementById("rotateY").addEventListener("click", () => {
+        animateRotation('y', rotateBy);
+    });    
+    document.getElementById("rotateZ").addEventListener("click", () => {
+        animateRotation('z', rotateBy);
+    });
     document.getElementById("resetRotation").addEventListener("click", () => {
         mat4.copy(rotationMatrix, defaultRotation);
         redraw = true;
+    });
+    document.addEventListener("keydown", (e) => {
+        if (e.key === 'a') animateRotation('y', -Math.PI / 3);
+        else if (e.key === 'd') animateRotation('y', Math.PI / 3);
+        else if (e.key === 'w') animateRotation('x', -Math.PI / 3);
+        else if (e.key === 's') animateRotation('x', Math.PI / 3);
+        else if (e.key === 'q') animateRotation('z', -Math.PI / 3);
+        else if (e.key === 'e') animateRotation('z', Math.PI / 3);
     });
     
     canvas.addEventListener("contextmenu", (e) => e.preventDefault());
