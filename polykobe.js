@@ -113,6 +113,10 @@ function main()
         mat4.fromYRotation(rotY, -angleY);
         mat4.multiply(rotationMatrix, rotY, rotationMatrix);
         mat4.multiply(rotationMatrix, rotX, rotationMatrix);
+
+        document.getElementById("r1").value = rotationMatrix[0];
+        document.getElementById("r2").value = rotationMatrix[1];
+        document.getElementById("r3").value = rotationMatrix[2];
     });
         
     drawScene();
@@ -203,14 +207,18 @@ function drawScene()
             vec3.normalize(ydir, ydir);
         
             const glyph3 = [
-                [[-0.3,  0.3], [ 0.2,  0.3]],
-                [[ 0.2,  0.3], [ 0.2,  0.0]],
-                [[ 0.2,  0.0], [-0.2,  0.0]],
-                [[ 0.2,  0.0], [ 0.2, -0.3]],
-                [[ 0.2, -0.3], [-0.3, -0.3]],
-                [[ 0.2, -0.45], [-0.3, -0.45]]
+                [[-0.2,  0.25], [-0.05,  0.28]],
+                [[-0.05,  0.28], [ 0.08,  0.25]],
+                [[ 0.08,  0.25], [ 0.18,  0.15]],
+                [[ 0.18,  0.15], [ 0.10,  0.05]],
+                [[ 0.10,  0.05], [-0.05,  0.00]],
+                [[-0.05,  0.00], [ 0.10, -0.05]],
+                [[ 0.10, -0.05], [ 0.18, -0.15]],
+                [[ 0.18, -0.15], [ 0.08, -0.25]],
+                [[ 0.08, -0.25], [-0.05, -0.28]],
+                [[-0.05, -0.28], [-0.2, -0.25]]
             ];
-        
+
             for (const [ [x1, y1], [x2, y2] ] of glyph3)
             {
                 const p1 = [
