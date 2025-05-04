@@ -1,13 +1,23 @@
 const φ = (1 + Math.sqrt(5)) / 2;
-const faceColor = "green";
 const edgeColor = "white";
+const defaultColor = "gray";
 const center = [ 0.0, 0.0, 0.0 ];
-const faces = [
-    [0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
-    [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
-    [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
-    [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]
+const defaultVertices = [
+    [ -1,  φ,  0 ], [ 1, φ, 0 ], [ -1, -φ , 0 ], [  1, -φ , 0 ],
+    [  0, -1,  φ ], [ 0, 1, φ ], [  0, -1, -φ ], [  0,  1, -φ ],
+    [  φ,  0, -1 ], [ φ, 0, 1 ], [ -φ,  0, -1 ], [ -φ,  0,  1 ]
 ];
+
+// each face has three vertices (each one is an index into the vertex array)
+// plus optional color and text
+var faces = [ ]
+function pushFace(a, b, c, faceColor = defaultColor, faceText = "") {
+    faces.push({ vertex: [a, b, c], color: faceColor, text: faceText });
+}
+pushFace(0, 11, 5); pushFace(0, 5, 1); pushFace(0, 1, 7); pushFace(0, 7, 10); pushFace(0, 10, 11);
+pushFace(1, 5, 9); pushFace(5, 11, 4, "green"); pushFace(11, 10, 2); pushFace(10, 7, 6); pushFace(7, 1, 8);
+pushFace(3, 9, 4); pushFace(3, 4, 2); pushFace(3, 2, 6, "blue"); pushFace(3, 6, 8); pushFace(3, 8, 9);
+pushFace(4, 9, 5); pushFace(2, 4, 11); pushFace(6, 2, 10); pushFace(8, 6, 7); pushFace(9, 8, 1);
 
 var canvas = document.querySelector('#canvas');
 var ctx = canvas.getContext('2d');
@@ -76,13 +86,9 @@ function drawScene()
     redraw = false;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const vertices = defaultVertices.map(v => v.slice());
 
-    const vertices = [
-        [ -1,  φ,  0 ], [ 1, φ, 0 ], [ -1, -φ , 0 ], [  1, -φ , 0 ],
-        [  0, -1,  φ ], [ 0, 1, φ ], [  0, -1, -φ ], [  0,  1, -φ ],
-        [  φ,  0, -1 ], [ φ, 0, 1 ], [ -φ,  0, -1 ], [ -φ,  0,  1 ]
-    ];
-
+    // scale and rotate each vertex
     for (xyz of vertices)
     {
         vec3.scale(xyz, xyz, scale);
@@ -90,24 +96,26 @@ function drawScene()
         vec3.rotateY(xyz, xyz, center, rotY);
     }
 
-    for (const [a, b, c] of faces)
+    // render each visible face
+    for (const face of faces)
     {
-        const v0 = vertices[a];
-        const v1 = vertices[b];
-        const v2 = vertices[c];
+        const { vertex: [a, b, c] } = face;
+        const v1 = vertices[a];
+        const v2 = vertices[b];
+        const v3 = vertices[c];
         
-        if (!isFaceVisible(v0, v1, v2))
+        if (!isFaceVisible(v1, v2, v3))
             continue;
 
         ctx.save();
         ctx.translate(canvas.width * 0.5, canvas.height * 0.5);
     
         ctx.beginPath();
-        ctx.moveTo(v0[0], v0[1]);
-        ctx.lineTo(v1[0], v1[1]);
+        ctx.moveTo(v1[0], v1[1]);
         ctx.lineTo(v2[0], v2[1]);
+        ctx.lineTo(v3[0], v3[1]);
         ctx.closePath();
-        ctx.fillStyle = faceColor;
+        ctx.fillStyle = face.color;
         ctx.fill();
         ctx.strokeStyle = edgeColor;
         ctx.stroke();
