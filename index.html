@@ -19,7 +19,7 @@
 <div id="section1">
 <label>scale:</label>
 <input type="range" min=5.0 max=200.0 value=100.0 step=0.1 class="slider" id="scale"
-    oninput="(function() { scale = parseFloat(value); })();">
+    oninput="(function() { scale = parseFloat(value); redraw = true; })();">
 <br>
 </div>
 

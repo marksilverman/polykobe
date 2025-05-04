@@ -1,5 +1,4 @@
 const φ = (1 + Math.sqrt(5)) / 2;
-const π = Math.pi;
 const faceColor = "green";
 const edgeColor = "white";
 const center = [ 0.0, 0.0, 0.0 ];
@@ -12,9 +11,10 @@ const faces = [
 
 var canvas = document.querySelector('#canvas');
 var ctx = canvas.getContext('2d');
-var camX = 0.0, camY = 0.0, camZ = 0.0;
-var scale = 100.0, raf = 0, prevX = 0, prevY = 0;
-var isDragging = false;
+var rotX = 0.0, rotY = 0.0;
+var scale = 100.0;
+var prevX = 0, prevY = 0;
+var isDragging = false, redraw = true;
 
 main();
 
@@ -23,31 +23,36 @@ function main()
     if (!ctx) return alert("Your browser sucks.");
 
     canvas.addEventListener("mousedown", (e) => {
+        redraw = true;
         isDragging = true;
         prevX = e.clientX;
         prevY = e.clientY;
     });
     
     canvas.addEventListener("mouseup", () => {
+        redraw = true;
         isDragging = false;
     });
     
     canvas.addEventListener("mouseleave", () => {
+        redraw = true;
         isDragging = false;
     });
     
     canvas.addEventListener("mousemove", (e) => {
-        if (!isDragging) return;
-    
-        const dx = e.clientX - prevX;
-        const dy = e.clientY - prevY;
-    
-        const sensitivity = 0.01;
-        camY -= dx * sensitivity;
-        camX += dy * sensitivity;
-    
-        prevX = e.clientX;
-        prevY = e.clientY;
+        if (isDragging)
+        {
+            redraw = true;
+            const dx = e.clientX - prevX;
+            const dy = e.clientY - prevY;
+        
+            const sensitivity = 0.01;
+            rotY -= dx * sensitivity;
+            rotX += dy * sensitivity;
+        
+            prevX = e.clientX;
+            prevY = e.clientY;
+        }
     });
         
     drawScene();
@@ -63,9 +68,16 @@ function isFaceVisible(v0, v1, v2)
 
 function drawScene()
 {
+    if (redraw == false)
+    {
+        window.requestAnimationFrame(drawScene);
+        return;
+    }
+    redraw = false;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    vertices = [
+    const vertices = [
         [ -1,  φ,  0 ], [ 1, φ, 0 ], [ -1, -φ , 0 ], [  1, -φ , 0 ],
         [  0, -1,  φ ], [ 0, 1, φ ], [  0, -1, -φ ], [  0,  1, -φ ],
         [  φ,  0, -1 ], [ φ, 0, 1 ], [ -φ,  0, -1 ], [ -φ,  0,  1 ]
@@ -74,9 +86,8 @@ function drawScene()
     for (xyz of vertices)
     {
         vec3.scale(xyz, xyz, scale);
-        vec3.rotateX(xyz, xyz, center, camX);
-        vec3.rotateY(xyz, xyz, center, camY);
-        vec3.rotateZ(xyz, xyz, center, camZ);
+        vec3.rotateX(xyz, xyz, center, rotX);
+        vec3.rotateY(xyz, xyz, center, rotY);
     }
 
     for (const [a, b, c] of faces)
@@ -103,5 +114,5 @@ function drawScene()
         ctx.restore();
     }
 
-    raf = window.requestAnimationFrame(drawScene);
+    window.requestAnimationFrame(drawScene);
 }
