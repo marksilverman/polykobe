@@ -21,7 +21,7 @@ function pushFace(a, b, c, new_state = defaultState, new_text = "", new_locked =
 pushFace(0, 11, 5); pushFace(0, 5, 1); pushFace(0, 1, 7); pushFace(0, 7, 10); pushFace(0, 10, 11);
 pushFace(1, 5, 9); pushFace(5, 11, 4); pushFace(11, 10, 2, 1, "3", true); pushFace(10, 7, 6); pushFace(7, 1, 8);
 pushFace(3, 9, 4); pushFace(3, 4, 2); pushFace(3, 2, 6); pushFace(3, 6, 8); pushFace(3, 8, 9);
-pushFace(4, 9, 5); pushFace(2, 4, 11); pushFace(6, 2, 10); pushFace(8, 6, 7, 2, "2", true); pushFace(9, 8, 1);
+pushFace(4, 9, 5); pushFace(2, 4, 11); pushFace(6, 2, 10); pushFace(8, 6, 7, 2, "3", true); pushFace(9, 8, 1);
 
 let canvas = document.querySelector('#canvas');
 let ctx = canvas.getContext('2d');
@@ -184,16 +184,54 @@ function drawScene()
         ctx.strokeStyle = edgeColor;
         ctx.stroke();
 
-        if (face.text !== "") {
-            const cx = (v1[0] + v2[0] + v3[0]) / 3;
-            const cy = (v1[1] + v2[1] + v3[1]) / 3;
+        if (face.text === "3")
+        {
+            const center = [
+                (v1[0] + v2[0] + v3[0]) / 3,
+                (v1[1] + v2[1] + v3[1]) / 3,
+                0
+            ];
         
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillStyle = "red";
-            ctx.font = "bold 16px sans-serif";
-            ctx.fillText(face.text, cx, cy);
+            const xdir = vec3.subtract([], v2, v1);
+            vec3.normalize(xdir, xdir);
+        
+            const temp = vec3.subtract([], v3, v1);
+            const normal = vec3.cross([], xdir, temp);
+            vec3.normalize(normal, normal);
+        
+            const ydir = vec3.cross([], normal, xdir);
+            vec3.normalize(ydir, ydir);
+        
+            const glyph3 = [
+                [[-0.3,  0.3], [ 0.2,  0.3]],
+                [[ 0.2,  0.3], [ 0.2,  0.0]],
+                [[ 0.2,  0.0], [-0.2,  0.0]],
+                [[ 0.2,  0.0], [ 0.2, -0.3]],
+                [[ 0.2, -0.3], [-0.3, -0.3]],
+                [[ 0.2, -0.45], [-0.3, -0.45]]
+            ];
+        
+            for (const [ [x1, y1], [x2, y2] ] of glyph3)
+            {
+                const p1 = [
+                    center[0] + scale * (x1 * xdir[0] + y1 * ydir[0]),
+                    center[1] + scale * (x1 * xdir[1] + y1 * ydir[1])
+                ];
+                const p2 = [
+                    center[0] + scale * (x2 * xdir[0] + y2 * ydir[0]),
+                    center[1] + scale * (x2 * xdir[1] + y2 * ydir[1])
+                ];
+        
+                ctx.beginPath();
+                ctx.moveTo(p1[0], p1[1]);
+                ctx.lineTo(p2[0], p2[1]);
+                ctx.strokeStyle = "red";
+                ctx.lineWidth = 4.0 * (scale / 100.0);
+                ctx.stroke();
+            }
         }
+        
+        
         ctx.restore();
     }
 
