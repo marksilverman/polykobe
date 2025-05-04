@@ -2,20 +2,7 @@ const φ = (1 + Math.sqrt(5)) / 2;
 const π = Math.pi;
 const faceColor = "green";
 const edgeColor = "white";
-
-const edges = [
-    [0, 1], [0, 5], [0, 7], [0, 10], [0, 11],
-    [1, 5], [1, 7], [1, 8], [1, 9],
-    [2, 3], [2, 4], [2, 6], [2, 10], [2, 11],
-    [3, 4], [3, 6], [3, 8], [3, 9],
-    [4, 5], [4, 9], [4, 11],
-    [5, 9], [5, 11],
-    [6, 7], [6, 8], [6, 10],
-    [7, 8], [7, 10],
-    [8, 9],
-    [10, 11]
-];
-
+const center = [ 0.0, 0.0, 0.0 ];
 const faces = [
     [0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
     [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
@@ -26,55 +13,44 @@ const faces = [
 var canvas = document.querySelector('#canvas');
 var ctx = canvas.getContext('2d');
 var camX = 0.0, camY = 0.0, camZ = 0.0;
-var scale = 120.0, raf = 0;
+var scale = 100.0, raf = 0, prevX = 0, prevY = 0;
 var isDragging = false;
-var prevX = 0, prevY = 0;
 
 main();
-
-canvas.addEventListener("mousedown", (e) =>
-{
-    isDragging = true;
-    prevX = e.clientX;
-    prevY = e.clientY;
-});
-
-canvas.addEventListener("mouseup", () =>
-{
-    isDragging = false;
-});
-
-canvas.addEventListener("mouseleave", () =>
-{
-    isDragging = false;
-});
-
-canvas.addEventListener("mousemove", (e) =>
-{
-    if (!isDragging) return;
-
-    const dx = e.clientX - prevX;
-    const dy = e.clientY - prevY;
-
-    const sensitivity = 0.01;
-    camY -= dx * sensitivity;
-    camX += dy * sensitivity;
-
-    prevX = e.clientX;
-    prevY = e.clientY;
-});
 
 function main()
 {
     if (!ctx) return alert("Your browser sucks.");
-    drawScene();
-}
 
-function rotate(xyz, center)
-{
-    vec3.rotateX(xyz, xyz, center, camX);
-    vec3.rotateY(xyz, xyz, center, camY);
-    vec3.rotateZ(xyz, xyz, center, camZ);
+    canvas.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        prevX = e.clientX;
+        prevY = e.clientY;
+    });
+    
+    canvas.addEventListener("mouseup", () => {
+        isDragging = false;
+    });
+    
+    canvas.addEventListener("mouseleave", () => {
+        isDragging = false;
+    });
+    
+    canvas.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+    
+        const dx = e.clientX - prevX;
+        const dy = e.clientY - prevY;
+    
+        const sensitivity = 0.01;
+        camY -= dx * sensitivity;
+        camX += dy * sensitivity;
+    
+        prevX = e.clientX;
+        prevY = e.clientY;
+    });
+        
+    drawScene();
 }
 
 function isFaceVisible(v0, v1, v2)
@@ -88,29 +64,20 @@ function isFaceVisible(v0, v1, v2)
 function drawScene()
 {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.save();
-
-    let center = [ 0.0, 0.0, 0.0 ];
 
     vertices = [
-        [ scale * -1, scale *  φ , 0],
-        [ scale *  1, scale *  φ , 0],
-        [ scale * -1, scale * -φ , 0],
-        [ scale *  1, scale * -φ , 0],
-
-        [ 0, scale * -1, scale *  φ ],
-        [ 0, scale *  1, scale *  φ ],
-        [ 0, scale * -1, scale * -φ ],
-        [ 0, scale *  1, scale * -φ ],
-
-        [ scale *  φ, 0, scale * -1 ],
-        [ scale *  φ, 0, scale *  1 ],
-        [ scale * -φ, 0, scale * -1 ],
-        [ scale * -φ, 0, scale *  1 ]
+        [ -1,  φ,  0 ], [ 1, φ, 0 ], [ -1, -φ , 0 ], [  1, -φ , 0 ],
+        [  0, -1,  φ ], [ 0, 1, φ ], [  0, -1, -φ ], [  0,  1, -φ ],
+        [  φ,  0, -1 ], [ φ, 0, 1 ], [ -φ,  0, -1 ], [ -φ,  0,  1 ]
     ];
 
-    for (v of vertices)
-        rotate(v, center);
+    for (xyz of vertices)
+    {
+        vec3.scale(xyz, xyz, scale);
+        vec3.rotateX(xyz, xyz, center, camX);
+        vec3.rotateY(xyz, xyz, center, camY);
+        vec3.rotateZ(xyz, xyz, center, camZ);
+    }
 
     for (const [a, b, c] of faces)
     {
@@ -120,6 +87,7 @@ function drawScene()
         
         if (!isFaceVisible(v0, v1, v2))
             continue;
+
         ctx.save();
         ctx.translate(canvas.width * 0.5, canvas.height * 0.5);
     
@@ -137,9 +105,3 @@ function drawScene()
 
     raf = window.requestAnimationFrame(drawScene);
 }
-
-function msg(info)
-{
-    document.getElementById("msg").innerHTML=info;
-}
-

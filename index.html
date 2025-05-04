@@ -14,24 +14,15 @@
 <div class="container" style="display: flex; height: 100%;">
 <canvas id="canvas" width=1024 height=768 style="width: 60%"></canvas>
 <div style="flex-grow: 1; background: gray;">
-
-<div id="controls">
-Polykobe by <a href=https://github.com/marksilverman/polykobe.git>Mark Silverman</a>
-<div>
-
-<div id="section2">
-<label>offset:</label>
-<input type="range" min=-4.0 max=4.0 step=0.05 value="2.5" class="slider" id="offset"
-    oninput="(function(){ offset = parseFloat(value); })();">
-</div>
-
+<div id="controls">Polykobe by <a href=https://github.com/marksilverman/polykobe.git>Mark Silverman</a><div>
+<br>
 <div id="section1">
 <label>scale:</label>
-<input type="range" min=0.0 max=200.0 value=120.0 step=1 class="slider" id="scale"
+<input type="range" min=5.0 max=200.0 value=100.0 step=0.1 class="slider" id="scale"
     oninput="(function() { scale = parseFloat(value); })();">
 <br>
-
 </div>
+
 </div>
 </div>
 </div>
