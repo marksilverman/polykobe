@@ -25,9 +25,15 @@ pushFace(4, 9, 5); pushFace(2, 4, 11); pushFace(6, 2, 10); pushFace(8, 6, 7, 2, 
 
 let canvas = document.querySelector('#canvas');
 let ctx = canvas.getContext('2d');
-let rotationMatrix = mat4.create();
-let scale = 100.0;
-let prevX = 0, prevY = 0;
+let rotationMatrix = mat4.fromValues(
+    -0.309017, -0.755761,  0.577350,  0.000000,
+    -0.809017, -0.110264, -0.577350,  0.000000,
+     0.500000, -0.645497, -0.577350,  0.000000,
+     0.000000,  0.000000,  0.000000,  1.000000
+);
+const defaultRotation = mat4.clone(rotationMatrix);
+
+let scale = 100.0, prevX = 0, prevY = 0;
 let isDragging = false, redraw = true;
 
 main();
@@ -37,10 +43,10 @@ function main()
     if (!ctx) return alert("Your browser sucks.");
 
     document.getElementById("resetRotation").addEventListener("click", () => {
-        mat4.identity(rotationMatrix);
+        mat4.copy(rotationMatrix, defaultRotation);
         redraw = true;
     });
-
+    
     canvas.addEventListener("contextmenu", (e) => e.preventDefault());
     
     canvas.addEventListener("mousedown", (e) =>
