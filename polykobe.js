@@ -23,12 +23,12 @@ pushFace(1, 5, 9); pushFace(5, 11, 4); pushFace(11, 10, 2); pushFace(10, 7, 6); 
 pushFace(3, 9, 4); pushFace(3, 4, 2); pushFace(3, 2, 6); pushFace(3, 6, 8); pushFace(3, 8, 9);
 pushFace(4, 9, 5); pushFace(2, 4, 11); pushFace(6, 2, 10); pushFace(8, 6, 7); pushFace(9, 8, 1);
 
-var canvas = document.querySelector('#canvas');
-var ctx = canvas.getContext('2d');
-var rotX = 0.0, rotY = 0.0;
-var scale = 100.0;
-var prevX = 0, prevY = 0;
-var isDragging = false, redraw = true;
+let canvas = document.querySelector('#canvas');
+let ctx = canvas.getContext('2d');
+let rotationMatrix = mat4.create();
+let scale = 100.0;
+let prevX = 0, prevY = 0;
+let isDragging = false, redraw = true;
 
 main();
 
@@ -47,8 +47,7 @@ function main()
         for (const xyz of vertexList)
         {
             vec3.scale(xyz, xyz, scale);
-            vec3.rotateX(xyz, xyz, center, rotX);
-            vec3.rotateY(xyz, xyz, center, rotY);
+            vec3.transformMat4(xyz, xyz, rotationMatrix);
         }
     
         for (const face of faceList)
@@ -90,19 +89,22 @@ function main()
     });
     
     canvas.addEventListener("mousemove", (e) => {
-        if (isDragging)
-        {
-            redraw = true;
-            const dx = e.clientX - prevX;
-            const dy = e.clientY - prevY;
-        
-            const sensitivity = 0.01;
-            rotY -= dx * sensitivity;
-            rotX += dy * sensitivity;
-        
-            prevX = e.clientX;
-            prevY = e.clientY;
-        }
+        if (!isDragging) return;
+        redraw = true;
+        const dx = e.clientX - prevX;
+        const dy = e.clientY - prevY;
+        prevX = e.clientX;
+        prevY = e.clientY;
+    
+        const angleX = dy * 0.01;
+        const angleY = dx * 0.01;
+    
+        const rotX = mat4.create();
+        const rotY = mat4.create();
+        mat4.fromXRotation(rotX, angleX);
+        mat4.fromYRotation(rotY, -angleY);
+        mat4.multiply(rotationMatrix, rotY, rotationMatrix);
+        mat4.multiply(rotationMatrix, rotX, rotationMatrix);
     });
         
     drawScene();
@@ -147,8 +149,7 @@ function drawScene()
     for (xyz of vertexList)
     {
         vec3.scale(xyz, xyz, scale);
-        vec3.rotateX(xyz, xyz, center, rotX);
-        vec3.rotateY(xyz, xyz, center, rotY);
+        vec3.transformMat4(xyz, xyz, rotationMatrix);
     }
 
     // render each visible face
