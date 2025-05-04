@@ -1,22 +1,26 @@
 const φ = (1 + Math.sqrt(5)) / 2;
-const edgeColor = "white";
+const edgeColor = "orange";
 const defaultColor = "gray";
 const center = [ 0.0, 0.0, 0.0 ];
-const defaultVertices = [
+const defaultVertexList = [
     [ -1,  φ,  0 ], [ 1, φ, 0 ], [ -1, -φ , 0 ], [  1, -φ , 0 ],
     [  0, -1,  φ ], [ 0, 1, φ ], [  0, -1, -φ ], [  0,  1, -φ ],
     [  φ,  0, -1 ], [ φ, 0, 1 ], [ -φ,  0, -1 ], [ -φ,  0,  1 ]
 ];
 
+const stateList = [ "unknown", "shaded", "unshaded" ];
+const stateColorList = { unknown: "gray", shaded: "black", unshaded: "white" };
+const defaultState = 0;
+
 // each face has three vertices (each one is an index into the vertex array)
 // plus optional color and text
-var faces = [ ]
-function pushFace(a, b, c, faceColor = defaultColor, faceText = "") {
-    faces.push({ vertex: [a, b, c], color: faceColor, text: faceText });
+var faceList = [ ]
+function pushFace(a, b, c, new_state = defaultState, new_text = "") {
+    faceList.push({ vidx1: a, vidx2: b, vidx3: c, state: new_state, text: new_text });
 }
 pushFace(0, 11, 5); pushFace(0, 5, 1); pushFace(0, 1, 7); pushFace(0, 7, 10); pushFace(0, 10, 11);
-pushFace(1, 5, 9); pushFace(5, 11, 4, "green"); pushFace(11, 10, 2); pushFace(10, 7, 6); pushFace(7, 1, 8);
-pushFace(3, 9, 4); pushFace(3, 4, 2); pushFace(3, 2, 6, "blue"); pushFace(3, 6, 8); pushFace(3, 8, 9);
+pushFace(1, 5, 9); pushFace(5, 11, 4); pushFace(11, 10, 2); pushFace(10, 7, 6); pushFace(7, 1, 8);
+pushFace(3, 9, 4); pushFace(3, 4, 2); pushFace(3, 2, 6); pushFace(3, 6, 8); pushFace(3, 8, 9);
 pushFace(4, 9, 5); pushFace(2, 4, 11); pushFace(6, 2, 10); pushFace(8, 6, 7); pushFace(9, 8, 1);
 
 var canvas = document.querySelector('#canvas');
@@ -32,6 +36,42 @@ function main()
 {
     if (!ctx) return alert("Your browser sucks.");
 
+    canvas.addEventListener("click", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX - canvas.width * 0.5;
+        const y = (e.clientY - rect.top) * scaleY - canvas.height * 0.5;
+
+        const vertexList = defaultVertexList.map(v => v.slice());
+        for (const xyz of vertexList)
+        {
+            vec3.scale(xyz, xyz, scale);
+            vec3.rotateX(xyz, xyz, center, rotX);
+            vec3.rotateY(xyz, xyz, center, rotY);
+        }
+    
+        for (const face of faceList)
+        {
+            const v1 = vertexList[face.vidx1];
+            const v2 = vertexList[face.vidx2];
+            const v3 = vertexList[face.vidx3];
+    
+            if (!isFaceVisible(v1, v2, v3)) continue;
+    
+            const p1 = [v1[0] + canvas.width * 0.5, v1[1] + canvas.height * 0.5];
+            const p2 = [v2[0] + canvas.width * 0.5, v2[1] + canvas.height * 0.5];
+            const p3 = [v3[0] + canvas.width * 0.5, v3[1] + canvas.height * 0.5];
+
+            if (pointInTriangle([x, y], v1, v2, v3))
+            {
+                face.state = (face.state + 1) % stateList.length;
+                redraw = true;
+                break;
+            }
+        }
+    });
+    
     canvas.addEventListener("mousedown", (e) => {
         redraw = true;
         isDragging = true;
@@ -68,6 +108,21 @@ function main()
     drawScene();
 }
 
+function pointInTriangle(p, a, b, c)
+{
+    function sign(p1, p2, p3)
+    {
+        return (p1[0] - p3[0]) * (p2[1] - p3[1]) -
+               (p2[0] - p3[0]) * (p1[1] - p3[1]);
+    }
+    const d1 = sign(p, a, b);
+    const d2 = sign(p, b, c);
+    const d3 = sign(p, c, a);
+    const hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+    const hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+    return !(hasNeg && hasPos);
+}
+
 function isFaceVisible(v0, v1, v2)
 {
     const u = vec3.subtract([], v1, v0);
@@ -86,10 +141,10 @@ function drawScene()
     redraw = false;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const vertices = defaultVertices.map(v => v.slice());
+    const vertexList = defaultVertexList.map(v => v.slice());
 
     // scale and rotate each vertex
-    for (xyz of vertices)
+    for (xyz of vertexList)
     {
         vec3.scale(xyz, xyz, scale);
         vec3.rotateX(xyz, xyz, center, rotX);
@@ -97,12 +152,11 @@ function drawScene()
     }
 
     // render each visible face
-    for (const face of faces)
+    for (const face of faceList)
     {
-        const { vertex: [a, b, c] } = face;
-        const v1 = vertices[a];
-        const v2 = vertices[b];
-        const v3 = vertices[c];
+        const v1 = vertexList[face.vidx1];
+        const v2 = vertexList[face.vidx2];
+        const v3 = vertexList[face.vidx3];
         
         if (!isFaceVisible(v1, v2, v3))
             continue;
@@ -115,7 +169,8 @@ function drawScene()
         ctx.lineTo(v2[0], v2[1]);
         ctx.lineTo(v3[0], v3[1]);
         ctx.closePath();
-        ctx.fillStyle = face.color;
+        ctx.fillStyle = stateColorList[stateList[face.state]];
+
         ctx.fill();
         ctx.strokeStyle = edgeColor;
         ctx.stroke();
