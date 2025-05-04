@@ -15,11 +15,11 @@ const defaultState = 0;
 // each face has three vertices (each one is an index into the vertex array)
 // plus optional color and text
 var faceList = [ ]
-function pushFace(a, b, c, new_state = defaultState, new_text = "") {
-    faceList.push({ vidx1: a, vidx2: b, vidx3: c, state: new_state, text: new_text });
+function pushFace(a, b, c, new_state = defaultState, new_text = "", new_locked = false) {
+    faceList.push({ vidx1: a, vidx2: b, vidx3: c, state: new_state, text: new_text, locked: new_locked });
 }
 pushFace(0, 11, 5); pushFace(0, 5, 1); pushFace(0, 1, 7); pushFace(0, 7, 10); pushFace(0, 10, 11);
-pushFace(1, 5, 9); pushFace(5, 11, 4); pushFace(11, 10, 2); pushFace(10, 7, 6); pushFace(7, 1, 8);
+pushFace(1, 5, 9); pushFace(5, 11, 4); pushFace(11, 10, 2, 1, "3", true); pushFace(10, 7, 6); pushFace(7, 1, 8);
 pushFace(3, 9, 4); pushFace(3, 4, 2); pushFace(3, 2, 6); pushFace(3, 6, 8); pushFace(3, 8, 9);
 pushFace(4, 9, 5); pushFace(2, 4, 11); pushFace(6, 2, 10); pushFace(8, 6, 7); pushFace(9, 8, 1);
 
@@ -64,8 +64,11 @@ function main()
 
             if (pointInTriangle([x, y], v1, v2, v3))
             {
-                face.state = (face.state + 1) % stateList.length;
-                redraw = true;
+                if (face.locked == false)
+                {
+                    face.state = (face.state + 1) % stateList.length;
+                    redraw = true;
+                }
                 break;
             }
         }
