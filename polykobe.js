@@ -21,7 +21,7 @@ function pushFace(a, b, c, new_state = defaultState, new_text = "", new_locked =
 pushFace(0, 11, 5); pushFace(0, 5, 1); pushFace(0, 1, 7); pushFace(0, 7, 10); pushFace(0, 10, 11);
 pushFace(1, 5, 9); pushFace(5, 11, 4); pushFace(11, 10, 2, 1, "3", true); pushFace(10, 7, 6); pushFace(7, 1, 8);
 pushFace(3, 9, 4); pushFace(3, 4, 2); pushFace(3, 2, 6); pushFace(3, 6, 8); pushFace(3, 8, 9);
-pushFace(4, 9, 5); pushFace(2, 4, 11); pushFace(6, 2, 10); pushFace(8, 6, 7); pushFace(9, 8, 1);
+pushFace(4, 9, 5); pushFace(2, 4, 11); pushFace(6, 2, 10); pushFace(8, 6, 7, 2, "2", true); pushFace(9, 8, 1);
 
 let canvas = document.querySelector('#canvas');
 let ctx = canvas.getContext('2d');
@@ -36,6 +36,11 @@ function main()
 {
     if (!ctx) return alert("Your browser sucks.");
 
+    document.getElementById("resetRotation").addEventListener("click", () => {
+        mat4.identity(rotationMatrix);
+        redraw = true;
+    });
+    
     canvas.addEventListener("click", (e) => {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
@@ -178,6 +183,17 @@ function drawScene()
         ctx.fill();
         ctx.strokeStyle = edgeColor;
         ctx.stroke();
+
+        if (face.text !== "") {
+            const cx = (v1[0] + v2[0] + v3[0]) / 3;
+            const cy = (v1[1] + v2[1] + v3[1]) / 3;
+        
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "red";
+            ctx.font = "bold 16px sans-serif";
+            ctx.fillText(face.text, cx, cy);
+        }
         ctx.restore();
     }
 
