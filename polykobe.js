@@ -1,29 +1,13 @@
+// polykobe.js
+//
 const φ = (1 + Math.sqrt(5)) / 2;
-const rotateBy = Math.PI / 3;
-
+const rotateBy = Math.PI / 6;
 const edgeColor = "orange";
 const defaultColor = "gray";
 const center = [ 0.0, 0.0, 0.0 ];
-const defaultVertexList = [
-    [ -1,  φ,  0 ], [ 1, φ, 0 ], [ -1, -φ , 0 ], [  1, -φ , 0 ],
-    [  0, -1,  φ ], [ 0, 1, φ ], [  0, -1, -φ ], [  0,  1, -φ ],
-    [  φ,  0, -1 ], [ φ, 0, 1 ], [ -φ,  0, -1 ], [ -φ,  0,  1 ]
-];
-
 const stateList = [ "unknown", "shaded", "unshaded" ];
 const stateColorList = { unknown: "gray", shaded: "black", unshaded: "white" };
 const defaultState = 0;
-
-// each face has three vertices (each one is an index into the vertex array)
-// plus optional color and text
-var faceList = [ ]
-function pushFace(a, b, c, new_state = defaultState, new_text = "", new_locked = false) {
-    faceList.push({ vidx1: a, vidx2: b, vidx3: c, state: new_state, text: new_text, locked: new_locked });
-}
-pushFace(0, 11, 5); pushFace(0, 5, 1); pushFace(0, 1, 7); pushFace(0, 7, 10); pushFace(0, 10, 11);
-pushFace(1, 5, 9); pushFace(5, 11, 4); pushFace(11, 10, 2, 1, "3", true); pushFace(10, 7, 6); pushFace(7, 1, 8);
-pushFace(3, 9, 4); pushFace(3, 4, 2); pushFace(3, 2, 6); pushFace(3, 6, 8); pushFace(3, 8, 9);
-pushFace(4, 9, 5); pushFace(2, 4, 11); pushFace(6, 2, 10); pushFace(8, 6, 7, 2, "3", true); pushFace(9, 8, 1);
 
 let canvas = document.querySelector('#canvas');
 let ctx = canvas.getContext('2d');
@@ -35,10 +19,11 @@ let rotationMatrix = mat4.fromValues(
 );
 const defaultRotation = mat4.clone(rotationMatrix);
 
-let scale = 100.0, prevX = 0, prevY = 0;
+let scale = 300.0, prevX = 0, prevY = 0;
 let isDragging = false, redraw = true;
 
-function animateRotation(axis, angle, steps = 20) {
+function animateRotation(axis, angle, steps = 20)
+{
     let count = 0;
     const stepAngle = angle / steps;
     const rot = mat4.create();
@@ -77,12 +62,12 @@ function main()
         redraw = true;
     });
     document.addEventListener("keydown", (e) => {
-        if (e.key === 'a') animateRotation('y', -Math.PI / 3);
-        else if (e.key === 'd') animateRotation('y', Math.PI / 3);
-        else if (e.key === 'w') animateRotation('x', -Math.PI / 3);
-        else if (e.key === 's') animateRotation('x', Math.PI / 3);
-        else if (e.key === 'q') animateRotation('z', -Math.PI / 3);
-        else if (e.key === 'e') animateRotation('z', Math.PI / 3);
+        if (e.key === 'a') animateRotation('y', -rotateBy);
+        else if (e.key === 'd') animateRotation('y', rotateBy);
+        else if (e.key === 'w') animateRotation('x', -rotateBy);
+        else if (e.key === 's') animateRotation('x', rotateBy);
+        else if (e.key === 'q') animateRotation('z', -rotateBy);
+        else if (e.key === 'e') animateRotation('z', rotateBy);
     });
     
     canvas.addEventListener("contextmenu", (e) => e.preventDefault());
@@ -154,10 +139,6 @@ function main()
         mat4.fromYRotation(rotY, -angleY);
         mat4.multiply(rotationMatrix, rotY, rotationMatrix);
         mat4.multiply(rotationMatrix, rotX, rotationMatrix);
-
-        document.getElementById("r1").value = rotationMatrix[0];
-        document.getElementById("r2").value = rotationMatrix[1];
-        document.getElementById("r3").value = rotationMatrix[2];
     });
         
     drawScene();
@@ -259,23 +240,23 @@ function drawScene()
                 [[ 0.08, -0.25], [-0.05, -0.28]],
                 [[-0.05, -0.28], [-0.2, -0.25]]
             ];
-
+            const glyphScale = scale / 2.0;
             for (const [ [x1, y1], [x2, y2] ] of glyph3)
             {
                 const p1 = [
-                    center[0] + scale * (x1 * xdir[0] + y1 * ydir[0]),
-                    center[1] + scale * (x1 * xdir[1] + y1 * ydir[1])
+                    center[0] + glyphScale * (x1 * xdir[0] + y1 * ydir[0]),
+                    center[1] + glyphScale * (x1 * xdir[1] + y1 * ydir[1])
                 ];
                 const p2 = [
-                    center[0] + scale * (x2 * xdir[0] + y2 * ydir[0]),
-                    center[1] + scale * (x2 * xdir[1] + y2 * ydir[1])
+                    center[0] + glyphScale * (x2 * xdir[0] + y2 * ydir[0]),
+                    center[1] + glyphScale * (x2 * xdir[1] + y2 * ydir[1])
                 ];
         
                 ctx.beginPath();
                 ctx.moveTo(p1[0], p1[1]);
                 ctx.lineTo(p2[0], p2[1]);
                 ctx.strokeStyle = "red";
-                ctx.lineWidth = 4.0 * (scale / 100.0);
+                ctx.lineWidth = 2.0 * (scale / 100.0);
                 ctx.stroke();
             }
         }

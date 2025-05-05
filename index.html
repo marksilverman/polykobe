@@ -6,6 +6,7 @@
     <title>Polykobe</title>
     <link rel="stylesheet" href="polykobe.css" type="text/css">
     <script src="gl-matrix-min.js" defer></script>
+    <script src="geometry.js" defer></script>
     <script src="polykobe.js" defer></script>
 </head>
 
@@ -14,12 +15,12 @@
 <div class="container" style="display: flex; height: 100%;">
 <canvas id="canvas" width=1024 height=768 style="width: 60%"></canvas>
 <div style="flex-grow: 1; background: gray;">
-<div id="controls">Polykobe by <a href=https://github.com/marksilverman/polykobe.git>Mark Silverman</a><div>
+<div id="controls">Polykobe<div>
 <br>
 
 <div id="section1">
     <label>scale:</label>
-    <input type="range" min=5.0 max=200.0 value=100.0 step=0.1 class="slider" id="scale"
+    <input type="range" min=50.0 max=400.0 value=300.0 step=0.5 class="slider" id="scale"
     oninput="(function() { scale = parseFloat(value); redraw = true; })();">
 </div>
 <br>
@@ -40,5 +41,7 @@
 </div>
 </div>
 </body>
-<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/InteractiveResource" property="dct:title" rel="dct:type">Spheromaniac</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://github.com/marksilverman/spheromaniac" property="cc:attributionName" rel="cc:attributionURL">Mark Silverman</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+<br>
+<span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/InteractiveResource" property="dct:title" rel="dct:type">Polykobe</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://github.com/marksilverman/polykobe" property="cc:attributionName" rel="cc:attributionURL">Mark Silverman</a>. This code is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>. 
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a>
 </html>
