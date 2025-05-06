@@ -73,7 +73,7 @@ pushFace(34, 28, 40);
 pushFace(39, 27, 33);
 pushFace(38, 26, 32);
 pushFace(31, 25, 37);
-pushFace(4, 16, 10, 2, "3");
+pushFace(4, 16, 10);
 pushFace(9, 15, 3);
 pushFace(8, 14, 2);
 pushFace(1, 13, 7);
