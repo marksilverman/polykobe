@@ -21,6 +21,20 @@ const defaultRotation = mat4.clone(rotationMatrix);
 
 let scale = 300.0, prevX = 0, prevY = 0;
 let isDragging = false, redraw = true;
+let selectedFace = null;
+
+function resetRotation()
+{
+    mat4.copy(rotationMatrix, defaultRotation);
+    redraw = true;
+}
+
+function toggleState()
+{
+    redraw = true;
+    if (selectedFace)
+        selectedFace.state = (selectedFace.state + 1) % stateList.length;
+}
 
 function animateRotation(axis, angle, steps = 20)
 {
@@ -48,19 +62,6 @@ function main()
 {
     if (!ctx) return alert("Your browser sucks.");
 
-    document.getElementById("rotateX").addEventListener("click", () => {
-        animateRotation('x', rotateBy);
-    });    
-    document.getElementById("rotateY").addEventListener("click", () => {
-        animateRotation('y', rotateBy);
-    });    
-    document.getElementById("rotateZ").addEventListener("click", () => {
-        animateRotation('z', rotateBy);
-    });
-    document.getElementById("resetRotation").addEventListener("click", () => {
-        mat4.copy(rotationMatrix, defaultRotation);
-        redraw = true;
-    });
     document.addEventListener("keydown", (e) => {
         if (e.key === 'a') animateRotation('y', -rotateBy);
         else if (e.key === 'd') animateRotation('y', rotateBy);
@@ -68,6 +69,8 @@ function main()
         else if (e.key === 's') animateRotation('x', rotateBy);
         else if (e.key === 'q') animateRotation('z', -rotateBy);
         else if (e.key === 'e') animateRotation('z', rotateBy);
+        else if (e.key === ' ') toggleState();
+        else if (e.key === 'r') resetRotation();
     });
     
     canvas.addEventListener("contextmenu", (e) => e.preventDefault());
@@ -75,7 +78,7 @@ function main()
     canvas.addEventListener("mousedown", (e) =>
     {
         redraw = true;
-        if (e.button === 2)
+        if (e.button === 0)
         {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
@@ -84,23 +87,29 @@ function main()
             const y = (e.clientY - rect.top) * scaleY - canvas.height * 0.5;
     
             const vertexList = defaultVertexList.map(v => v.slice());
-            for (const xyz of vertexList) {
+            for (const xyz of vertexList)
+                {
                 vec3.scale(xyz, xyz, scale);
                 vec3.transformMat4(xyz, xyz, rotationMatrix);
             }
     
-            for (const face of faceList) {
+            for (const face of faceList)
+            {
                 const v1 = vertexList[face.vidx1];
                 const v2 = vertexList[face.vidx2];
                 const v3 = vertexList[face.vidx3];
     
                 if (!isFaceVisible(v1, v2, v3)) continue;
-                if (pointInTriangle([x, y], v1, v2, v3)) {
-                    if (!face.locked) {
-                        face.state = (face.state + 1) % stateList.length;
-                    }
+                if (pointInTriangle([x, y], v1, v2, v3))
+                {
+                    if (selectedFace == face)
+                        selectedFace = null;
+                    else
+                        selectedFace = face;
                     break;
                 }
+                else
+                    selectedFace = null;
             }
         }
 
@@ -164,26 +173,25 @@ function main()
     });
 
     document.getElementById("fileInput").addEventListener("change",(event) => {
-        const file=event.target.files[0];
-        if(!file) return;
-        const reader=new FileReader();
-        reader.onload=(e) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
             try {
                 const data=JSON.parse(e.target.result);
-                for(const f of data) {
-                    const match=faceList.find(x =>
-                        x.vidx1===f.vidx1&&
-                        x.vidx2===f.vidx2&&
-                        x.vidx3===f.vidx3
-                    );
-                    if(match) {
-                        match.state=f.state;
-                        match.text=f.text;
+                for (const f of data)
+                {
+                    const match = faceList.find(x =>
+                        x.vidx1===f.vidx1 && x.vidx2===f.vidx2 && x.vidx3===f.vidx3);
+                    if (match)
+                    {
+                        match.state = f.state;
+                        match.text = f.text;
                         if (f.state == 1)
                             match.locked=true;
                     }
                 }
-                redraw=true;
+                redraw = true;
             } catch {}
         };
         reader.readAsText(file);
@@ -247,15 +255,26 @@ function drawScene()
         ctx.save();
         ctx.translate(canvas.width * 0.5, canvas.height * 0.5);
     
+        if (selectedFace == face)
+        {
+            ctx.lineWidth = 8.0 * (scale / 200.0);
+            ctx.strokeStyle = "purple";
+        }
+        else
+        {
+            ctx.lineWidth = 1.0 * (scale / 200.0);
+            ctx.strokeStyle = edgeColor;
+        }
+
         ctx.beginPath();
         ctx.moveTo(v1[0], v1[1]);
         ctx.lineTo(v2[0], v2[1]);
-        ctx.lineTo(v3[0], v3[1]);
+        ctx.lineTo(v3[0], v3[1]);        
+
         ctx.closePath();
         ctx.fillStyle = stateColorList[stateList[face.state]];
 
         ctx.fill();
-        ctx.strokeStyle = edgeColor;
         ctx.stroke();
 
         if (face.text === "3")

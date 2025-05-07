@@ -53,8 +53,13 @@ const defaultVertexList = [
 // each face has three vertices (each one is an index into the vertex array)
 // plus optional color and text
 var faceList = [  ]
+// var edgeList = [  ]
 
-function pushFace(a, b, c, new_state=0, new_text="", new_locked=false) {
+function pushFace(a, b, c, new_state=0, new_text="", new_locked=false)
+{
+    // let faceIdx = faceList.length;
+    // let edgeIdx = edgeList.length;
+    // edgeList[`${a}|${b}`].push( { face:  faceIdx } );
     faceList.push({vidx1: a, vidx2: b, vidx3: c, state: new_state, text: new_text, locked: new_locked});
 }
 

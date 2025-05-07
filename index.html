@@ -26,14 +26,15 @@
 <br>
 
 <div id="section1">
-    <button id="rotateX">Rotate X</button>
-    <button id="rotateY">Rotate Y</button>
-    <button id="rotateZ">Rotate Z</button>
+    <button onclick="(function() { animateRotation('x', rotateBy); })()">Rotate X</button>
+    <button onclick="(function() { animateRotation('y', rotateBy); })()">Rotate Y</button>
+    <button onclick="(function() { animateRotation('z', rotateBy); })()">Rotate Z</button>
+    <button onclick="resetRotation()">Reset</button>
 </div>
 <br>
 
 <div id="section1">
-<button id="resetRotation">Reset Rotation</button>
+    <button onclick="toggleState()">Toggle State</button>
 </div>
 <br>
 
