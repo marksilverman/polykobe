@@ -25,19 +25,13 @@ let selectedFace = null;
 
 function saveState()
 {
-    //for (var i = 0; i < faceList.length; i++)
-    //{
-    //    const face = faceList[i];
-    //}
-    const data=faceList.map(f => ({
-        vidx1: f.vidx1,
-        vidx2: f.vidx2,
-        vidx3: f.vidx3,
-        state: f.state,
-        number: f.number,
-        locked: f.locked
-    }));
-    const blob=new Blob([JSON.stringify(data)], {type: "application/json"});
+    const data = [ ];
+    for (let i = 0; i < faceList.length; i++)
+    {
+        const f = faceList[i];
+        data.push({ index: i, state: f.state, number: f.number, locked: f.locked });
+    }
+    const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -56,17 +50,12 @@ function loadState(fileList)
             const data = JSON.parse(e.target.result);
             for (const f of data)
             {
-                const match = faceList.find(x =>
-                    x.vidx1===f.vidx1 && x.vidx2===f.vidx2 && x.vidx3===f.vidx3);
-                if (match)
-                {
-                    match.state = f.state;
-                    match.number = f.number;
-                    if (f.number !== undefined)
-                        match.state = 2;
-                    if (f.state != 0)
-                        match.locked=true;
-                }
+                const face = faceList[f.index];
+                if (!face) continue;
+                face.state = f.state;
+                face.number = f.number;
+                //face.locked = f.locked;
+                if (f.state !== 0) face.locked = true;
             }
             redraw = true;
         } catch {}
@@ -83,15 +72,16 @@ function resetRotation()
 function toggleState()
 {
     redraw = true;
-    if (selectedFace)
+    if (selectedFace && !selectedFace.locked)
         selectedFace.state = (selectedFace.state + 1) % stateList.length;
 }
 
 function clearFaces()
 {
-    console.log("clearFaces()");
     for (var face of faceList)
     {
+        if (face.locked)
+            continue;
         if (face.state == 1)
             face.state = 0;
         if (face.state == 2)
@@ -122,6 +112,19 @@ function animateRotation(axis, angle, steps = 20)
     step();
 }
 
+function unlock()
+{
+    if (selectedFace)
+        selectedFace.locked = false;
+}
+
+function setNumber(n)
+{
+    if (selectedFace && !selectedFace.locked)
+        selectedFace.number = parseInt(n);
+    redraw = true;
+}
+
 main();
 
 function main()
@@ -137,8 +140,8 @@ function main()
         else if (e.key === 'e') animateRotation('z', rotateBy);
         else if (e.key === ' ') toggleState();
         else if (e.key === 'r') resetRotation();
-        else if (selectedFace && /^[1-9]$/.test(e.key)) selectedFace.number = parseInt(e.key);
-        else if (selectedFace && e.key === '0') selectedFace.number = undefined;
+        else if (/^[1-9]$/.test(e.key)) setNumber(e.key);
+        else if (e.key === '0') setNumber(undefined);
         redraw = true;
     });
     
@@ -147,40 +150,47 @@ function main()
     canvas.addEventListener("mousedown", (e) =>
     {
         redraw = true;
-        if (e.button === 0)
-        {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const x = (e.clientX - rect.left) * scaleX - canvas.width * 0.5;
-            const y = (e.clientY - rect.top) * scaleY - canvas.height * 0.5;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX - canvas.width * 0.5;
+        const y = (e.clientY - rect.top) * scaleY - canvas.height * 0.5;
     
-            const vertexList = defaultVertexList.map(v => v.slice());
-            for (const xyz of vertexList)
-                {
-                vec3.scale(xyz, xyz, scale);
-                vec3.transformMat4(xyz, xyz, rotationMatrix);
-            }
-    
-            for (var i = 0; i < faceList.length; i++)
+        const vertexList = defaultVertexList.map(v => v.slice());
+        for (const xyz of vertexList)
             {
-                const face = faceList[i];
-                const v1 = vertexList[face.vidx1];
-                const v2 = vertexList[face.vidx2];
-                const v3 = vertexList[face.vidx3];
+            vec3.scale(xyz, xyz, scale);
+            vec3.transformMat4(xyz, xyz, rotationMatrix);
+        }
     
-                if (!isFaceVisible(v1, v2, v3)) continue;
-                if (pointInTriangle([x, y], v1, v2, v3))
+        for (var i = 0; i < faceList.length; i++)
+        {
+            const face = faceList[i];
+            const v1 = vertexList[face.vidx1];
+            const v2 = vertexList[face.vidx2];
+            const v3 = vertexList[face.vidx3];
+    
+            if (!isFaceVisible(v1, v2, v3)) continue;
+            let ding = pointInTriangle([x, y], v1, v2, v3);
+            if (ding)
+            {
+                if (e.button === 0)
                 {
                     if (selectedFace == face)
                         selectedFace = null;
                     else
                         selectedFace = face;
-                    break;
                 }
                 else
+                {
+                    selectedFace = face;
+                    toggleState();
                     selectedFace = null;
+                }
+                break;
             }
+            else
+                selectedFace = null;
         }
 
         if (e.button === 0)
