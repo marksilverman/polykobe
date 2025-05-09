@@ -23,6 +23,57 @@ let scale = 300.0, prevX = 0, prevY = 0;
 let isDragging = false, redraw = true;
 let selectedFace = null;
 
+function saveState()
+{
+    //for (var i = 0; i < faceList.length; i++)
+    //{
+    //    const face = faceList[i];
+    //}
+    const data=faceList.map(f => ({
+        vidx1: f.vidx1,
+        vidx2: f.vidx2,
+        vidx3: f.vidx3,
+        state: f.state,
+        number: f.number,
+        locked: f.locked
+    }));
+    const blob=new Blob([JSON.stringify(data)], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "polykobe.json";
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function loadState(fileList)
+{
+    if (!fileList.length) return;
+    const file = fileList[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            for (const f of data)
+            {
+                const match = faceList.find(x =>
+                    x.vidx1===f.vidx1 && x.vidx2===f.vidx2 && x.vidx3===f.vidx3);
+                if (match)
+                {
+                    match.state = f.state;
+                    match.number = f.number;
+                    if (f.number !== undefined)
+                        match.state = 2;
+                    if (f.state != 0)
+                        match.locked=true;
+                }
+            }
+            redraw = true;
+        } catch {}
+    };
+    reader.readAsText(file);
+}
+
 function resetRotation()
 {
     mat4.copy(rotationMatrix, defaultRotation);
@@ -111,7 +162,6 @@ function main()
                 vec3.transformMat4(xyz, xyz, rotationMatrix);
             }
     
-            // for (const face of faceList)
             for (var i = 0; i < faceList.length; i++)
             {
                 const face = faceList[i];
@@ -168,55 +218,6 @@ function main()
         mat4.fromYRotation(rotY, -angleY);
         mat4.multiply(rotationMatrix, rotY, rotationMatrix);
         mat4.multiply(rotationMatrix, rotX, rotationMatrix);
-    });
-
-    document.getElementById("saveState").addEventListener("click",() => {
-        const data=faceList.map(f => ({
-            vidx1: f.vidx1,
-            vidx2: f.vidx2,
-            vidx3: f.vidx3,
-            state: f.state,
-            number: f.number,
-            locked: f.locked
-        }));
-        const blob=new Blob([JSON.stringify(data)],{type: "application/json"});
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement("a");
-        a.href=url;
-        a.download="face_state.json";
-        a.click();
-        URL.revokeObjectURL(url);
-    });
-
-    document.getElementById("loadState").addEventListener("click",() => {
-        document.getElementById("fileInput").click();
-    });
-
-    document.getElementById("fileInput").addEventListener("change",(event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data=JSON.parse(e.target.result);
-                for (const f of data)
-                {
-                    const match = faceList.find(x =>
-                        x.vidx1===f.vidx1 && x.vidx2===f.vidx2 && x.vidx3===f.vidx3);
-                    if (match)
-                    {
-                        match.state = f.state;
-                        match.number = f.number;
-                        if (f.number !== undefined)
-                            match.state = 2;
-                        if (f.state != 0)
-                            match.locked=true;
-                    }
-                }
-                redraw = true;
-            } catch {}
-        };
-        reader.readAsText(file);
     });
 
     drawScene();

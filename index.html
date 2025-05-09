@@ -34,15 +34,15 @@
 <br>
 
 <div id="section1">
-    <button onclick="toggleState()">Toggle State</button>
+    <button onclick="toggleState()">Toggle</button>
     <button onclick="clearFaces()">Clear</button>
 </div>
 <br>
 
 <div id="section1">
-<button id="saveState">Save State</button>
-<button id="loadState">Load State</button>
-<input type="file" id="fileInput" style="display:none">
+<button onclick="saveState()">Save</button>
+<button onclick="document.getElementById('fileInput').click()">Load</button>
+<input onchange="loadState(this.files)" type="file" id="fileInput" style="display:none">
 </div>
 
 </div>
