@@ -6,7 +6,7 @@ const edgeColor = "orange";
 const defaultColor = "gray";
 const center = [ 0.0, 0.0, 0.0 ];
 const stateList = [ "unknown", "shaded", "unshaded" ];
-const stateColorList = { unknown: "gray", shaded: "black", unshaded: "white" };
+const stateColorList = { unknown: "white", shaded: "black", unshaded: "green" };
 const defaultState = 0;
 
 let canvas = document.querySelector('#canvas');
@@ -34,6 +34,21 @@ function toggleState()
     redraw = true;
     if (selectedFace)
         selectedFace.state = (selectedFace.state + 1) % stateList.length;
+}
+
+function clearFaces()
+{
+    console.log("clearFaces()");
+    for (var face of faceList)
+    {
+        if (face.state == 1)
+            face.state = 0;
+        if (face.state == 2)
+            face.state = 0;
+        if (face.number !== undefined)
+            face.state = 2;
+    }
+    redraw = true;
 }
 
 function animateRotation(axis, angle, steps = 20)
@@ -71,6 +86,9 @@ function main()
         else if (e.key === 'e') animateRotation('z', rotateBy);
         else if (e.key === ' ') toggleState();
         else if (e.key === 'r') resetRotation();
+        else if (selectedFace && /^[1-9]$/.test(e.key)) selectedFace.number = parseInt(e.key);
+        else if (selectedFace && e.key === '0') selectedFace.number = undefined;
+        redraw = true;
     });
     
     canvas.addEventListener("contextmenu", (e) => e.preventDefault());
@@ -93,8 +111,10 @@ function main()
                 vec3.transformMat4(xyz, xyz, rotationMatrix);
             }
     
-            for (const face of faceList)
+            // for (const face of faceList)
+            for (var i = 0; i < faceList.length; i++)
             {
+                const face = faceList[i];
                 const v1 = vertexList[face.vidx1];
                 const v2 = vertexList[face.vidx2];
                 const v3 = vertexList[face.vidx3];
@@ -156,7 +176,7 @@ function main()
             vidx2: f.vidx2,
             vidx3: f.vidx3,
             state: f.state,
-            text: f.text,
+            number: f.number,
             locked: f.locked
         }));
         const blob=new Blob([JSON.stringify(data)],{type: "application/json"});
@@ -186,8 +206,10 @@ function main()
                     if (match)
                     {
                         match.state = f.state;
-                        match.text = f.text;
-                        if (f.state == 1)
+                        match.number = f.number;
+                        if (f.number !== undefined)
+                            match.state = 2;
+                        if (f.state != 0)
                             match.locked=true;
                     }
                 }
@@ -277,8 +299,11 @@ function drawScene()
         ctx.fill();
         ctx.stroke();
 
-        if (face.text === "3")
+        let glyph = glyphList[face.number];
+        if (glyph)
         {
+            const glyphScale = scale / 3.0;
+
             const center = [
                 (v1[0] + v2[0] + v3[0]) / 3,
                 (v1[1] + v2[1] + v3[1]) / 3,
@@ -295,20 +320,7 @@ function drawScene()
             const ydir = vec3.cross([], normal, xdir);
             vec3.normalize(ydir, ydir);
         
-            const glyph3 = [
-                [[-0.2,  0.25], [-0.05,  0.28]],
-                [[-0.05,  0.28], [ 0.08,  0.25]],
-                [[ 0.08,  0.25], [ 0.18,  0.15]],
-                [[ 0.18,  0.15], [ 0.10,  0.05]],
-                [[ 0.10,  0.05], [-0.05,  0.00]],
-                [[-0.05,  0.00], [ 0.10, -0.05]],
-                [[ 0.10, -0.05], [ 0.18, -0.15]],
-                [[ 0.18, -0.15], [ 0.08, -0.25]],
-                [[ 0.08, -0.25], [-0.05, -0.28]],
-                [[-0.05, -0.28], [-0.2, -0.25]]
-            ];
-            const glyphScale = scale / 2.0;
-            for (const [ [x1, y1], [x2, y2] ] of glyph3)
+            for (const [ [x1, y1], [x2, y2] ] of glyph)
             {
                 const p1 = [
                     center[0] + glyphScale * (x1 * xdir[0] + y1 * ydir[0]),
@@ -322,7 +334,7 @@ function drawScene()
                 ctx.beginPath();
                 ctx.moveTo(p1[0], p1[1]);
                 ctx.lineTo(p2[0], p2[1]);
-                ctx.strokeStyle = "red";
+                ctx.strokeStyle = "white";
                 ctx.lineWidth = 2.0 * (scale / 100.0);
                 ctx.stroke();
             }
