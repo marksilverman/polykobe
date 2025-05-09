@@ -3,14 +3,24 @@
 const φ = (1 + Math.sqrt(5)) / 2;
 const rotateBy = Math.PI / 6;
 const edgeColor = "orange";
+const selectedColor = "purple"
 const defaultColor = "gray";
-const center = [ 0.0, 0.0, 0.0 ];
+const glyphColor = "orange";
 const stateList = [ "unknown", "shaded", "unshaded" ];
 const stateColorList = { unknown: "white", shaded: "black", unshaded: "green" };
-const defaultState = 0;
+const unknownState = 0, shadedState = 1, unshadedState = 2;
 
 let canvas = document.querySelector('#canvas');
+const rect = canvas.getBoundingClientRect();
+const scaleX = canvas.width / rect.width;
+const scaleY = canvas.height / rect.height;
+const halfWidth = canvas.width * 0.5;
+const halfHeight = canvas.height * 0.5;
+const rectLeft = rect.left;
+const rectTop = rect.top;
+
 let ctx = canvas.getContext('2d');
+
 let rotationMatrix = mat4.fromValues(
     -0.309017, -0.755761,  0.577350,  0.000000,
     -0.809017, -0.110264, -0.577350,  0.000000,
@@ -55,12 +65,12 @@ function loadState(fileList)
                 face.state = f.state;
                 face.number = f.number;
                 //face.locked = f.locked;
-                if (f.state !== 0) face.locked = true;
+                if (f.state !== unknownState) face.locked = true;
             }
-            redraw = true;
         } catch {}
     };
     reader.readAsText(file);
+    redraw = true;
 }
 
 function resetRotation()
@@ -71,26 +81,50 @@ function resetRotation()
 
 function toggleState()
 {
-    redraw = true;
     if (selectedFace && !selectedFace.locked)
         selectedFace.state = (selectedFace.state + 1) % stateList.length;
+    redraw = true;
 }
 
 function clearFaces()
 {
     for (var face of faceList)
     {
-        if (face.locked)
-            continue;
-        if (face.state == 1)
-            face.state = 0;
-        if (face.state == 2)
-            face.state = 0;
-        if (face.number !== undefined)
-            face.state = 2;
+        if (!face.locked)
+        {
+            face.state = unknownState;
+            face.number = null;
+        }
     }
     redraw = true;
 }
+
+function unlockFaces()
+{
+    for (var face of faceList)
+        face.locked = false;
+    redraw = true;
+}
+
+function unlock()
+{
+    if (selectedFace)
+        selectedFace.locked = false;
+}
+
+function lock()
+{
+    if (selectedFace)
+        selectedFace.locked = true;
+}
+
+function setNumber(n)
+{
+    if (selectedFace && !selectedFace.locked)
+        selectedFace.number = parseInt(n);
+    redraw = true;
+}
+
 
 function animateRotation(axis, angle, steps = 20)
 {
@@ -108,22 +142,34 @@ function animateRotation(axis, angle, steps = 20)
         redraw = true;
         requestAnimationFrame(step);
     }
-
     step();
 }
 
-function unlock()
+function getTransformedVertices()
 {
-    if (selectedFace)
-        selectedFace.locked = false;
+    return defaultVertexList.map(v =>
+    {
+        const xyz = vec3.clone(v);
+        vec3.scale(xyz, xyz, scale);
+        vec3.transformMat4(xyz, xyz, rotationMatrix);
+        return xyz;
+    });
 }
 
-function setNumber(n)
+function pickFaceAtCanvasXY(x, y)
 {
-    if (selectedFace && !selectedFace.locked)
-        selectedFace.number = parseInt(n);
-    redraw = true;
-}
+    const vertexList = getTransformedVertices();
+    for (const face of faceList)
+    {
+        const v1 = vertexList[face.vidx1];
+        const v2 = vertexList[face.vidx2];
+        const v3 = vertexList[face.vidx3];
+        if (!isFaceVisible(v1, v2, v3)) continue;
+        if (pointInTriangle([x, y], v1, v2, v3))
+            return face;
+    }
+    return null;
+ }
 
 main();
 
@@ -141,57 +187,30 @@ function main()
         else if (e.key === ' ') toggleState();
         else if (e.key === 'r') resetRotation();
         else if (/^[1-9]$/.test(e.key)) setNumber(e.key);
-        else if (e.key === '0') setNumber(undefined);
+        else if (e.key === '0') setNumber(null);
+        else if (e.key === 'u') unlock();
+        else if (e.key === 'l') lock();
         redraw = true;
     });
     
     canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+    canvas.addEventListener("touchstart", (e) =>
+    {
+        if (e.touches.length == 1)
+        {
+            const x = (e.touches[0].clientX - rectLeft) * scaleX - halfWidth;
+            const y = (e.touches[0].clientY - rectTop) * scaleY - halfHeight;
+            selectedFace = pickFaceAtCanvasXY(x, y);
+            redraw = true;
+        }
+    });
     
     canvas.addEventListener("mousedown", (e) =>
     {
-        redraw = true;
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        const x = (e.clientX - rect.left) * scaleX - canvas.width * 0.5;
-        const y = (e.clientY - rect.top) * scaleY - canvas.height * 0.5;
-    
-        const vertexList = defaultVertexList.map(v => v.slice());
-        for (const xyz of vertexList)
-            {
-            vec3.scale(xyz, xyz, scale);
-            vec3.transformMat4(xyz, xyz, rotationMatrix);
-        }
-    
-        for (var i = 0; i < faceList.length; i++)
-        {
-            const face = faceList[i];
-            const v1 = vertexList[face.vidx1];
-            const v2 = vertexList[face.vidx2];
-            const v3 = vertexList[face.vidx3];
-    
-            if (!isFaceVisible(v1, v2, v3)) continue;
-            let ding = pointInTriangle([x, y], v1, v2, v3);
-            if (ding)
-            {
-                if (e.button === 0)
-                {
-                    if (selectedFace == face)
-                        selectedFace = null;
-                    else
-                        selectedFace = face;
-                }
-                else
-                {
-                    selectedFace = face;
-                    toggleState();
-                    selectedFace = null;
-                }
-                break;
-            }
-            else
-                selectedFace = null;
-        }
+        const x = (e.clientX - rectLeft) * scaleX - halfWidth;
+        const y = (e.clientY - rectTop) * scaleY - halfHeight;
+        selectedFace = pickFaceAtCanvasXY(x, y);
 
         if (e.button === 0)
         {
@@ -199,21 +218,25 @@ function main()
             prevX = e.clientX;
             prevY = e.clientY;
         }
+        else
+        {
+            toggleState();
+            selectedFace = null;
+        }
     });
     
     canvas.addEventListener("mouseup", () => {
-        redraw = true;
         isDragging = false;
+        redraw = true;
     });
     
     canvas.addEventListener("mouseleave", () => {
-        redraw = true;
         isDragging = false;
+        redraw = true;
     });
     
     canvas.addEventListener("mousemove", (e) => {
         if (!isDragging) return;
-        redraw = true;
         const dx = e.clientX - prevX;
         const dy = e.clientY - prevY;
         prevX = e.clientX;
@@ -228,6 +251,7 @@ function main()
         mat4.fromYRotation(rotY, -angleY);
         mat4.multiply(rotationMatrix, rotY, rotationMatrix);
         mat4.multiply(rotationMatrix, rotX, rotationMatrix);
+        redraw = true;
     });
 
     drawScene();
@@ -266,14 +290,8 @@ function drawScene()
     redraw = false;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const vertexList = defaultVertexList.map(v => v.slice());
 
-    // scale and rotate each vertex
-    for (xyz of vertexList)
-    {
-        vec3.scale(xyz, xyz, scale);
-        vec3.transformMat4(xyz, xyz, rotationMatrix);
-    }
+    const vertexList = getTransformedVertices();
 
     // render each visible face
     for (const face of faceList)
@@ -286,12 +304,12 @@ function drawScene()
             continue;
 
         ctx.save();
-        ctx.translate(canvas.width * 0.5, canvas.height * 0.5);
+        ctx.translate(halfWidth, halfHeight);
     
         if (selectedFace == face)
         {
             ctx.lineWidth = 8.0 * (scale / 200.0);
-            ctx.strokeStyle = "purple";
+            ctx.strokeStyle = selectedColor;
         }
         else
         {
@@ -345,7 +363,7 @@ function drawScene()
                 ctx.beginPath();
                 ctx.moveTo(p1[0], p1[1]);
                 ctx.lineTo(p2[0], p2[1]);
-                ctx.strokeStyle = "white";
+                ctx.strokeStyle = glyphColor;
                 ctx.lineWidth = 2.0 * (scale / 100.0);
                 ctx.stroke();
             }
