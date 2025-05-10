@@ -70,19 +70,21 @@ function loadState(fileList)
     if (!fileList.length) return;
     const file = fileList[0];
     const reader = new FileReader();
-    reader.readAsText(file);
-    const data = JSON.parse(e.target.result);
-    for (const f of data)
+    reader.onload = function()
     {
-        const face = faceList[f.index];
-        if (!face) continue;
-        face.state = f.state;
-        if (f.number == undefined)
-            face.number = null;
-        else
-            face.number = f.number;
-        face.locked = f.locked;
-    }
+        for (const f of JSON.parse(reader.result))
+        {
+            const face = faceList[f.index];
+            if (!face) continue;
+            face.state = f.state;
+            if (f.number == undefined)
+                face.number = null;
+            else
+                face.number = f.number;
+            face.locked = f.locked;
+        }
+    };
+    reader.readAsText(file);
     redraw = true;
 }
 
