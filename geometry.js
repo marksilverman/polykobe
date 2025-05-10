@@ -77,7 +77,8 @@ for (let i = 0; i < faceIndexList.length; i++)
     vertices: [ a, b, c ],
     edges: [ e0, e1, e2 ],
     state: 0,
-    locked: false
+    locked: false,
+    number: null
   });
 }
 

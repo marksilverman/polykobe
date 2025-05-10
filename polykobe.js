@@ -62,10 +62,13 @@ function loadState(fileList)
                 const face = faceList[f.index];
                 if (!face) continue;
                 face.state = f.state;
-                face.number = f.number;
-                if (f.state !== unknownState) face.locked = true;
+                if (f.number == undefined)
+                    face.number = null;
+                else
+                    face.number = f.number;
+                face.locked = f.locked;
             }
-        } catch {}
+        } catch { }
     };
     reader.readAsText(file);
     redraw = true;
@@ -81,6 +84,25 @@ function toggleState()
 {
     if (selectedFace && !selectedFace.locked)
         selectedFace.state = (selectedFace.state + 1) % stateList.length;
+    redraw = true;
+}
+
+function clearMost()
+{
+    for (var face of faceList)
+    {
+        if (face.locked)
+            continue;
+        if (face.number !== null)
+        {
+            face.state = unshadedState;
+            face.locked = true;
+        }
+        else
+        {
+            face.state = unknownState;
+        }
+    }
     redraw = true;
 }
 
@@ -264,7 +286,7 @@ function main()
     
         const rotX = mat4.create();
         const rotY = mat4.create();
-        mat4.fromXRotation(rotX, angleX);
+        mat4.fromXRotation(rotX, -angleX);
         mat4.fromYRotation(rotY, -angleY);
         mat4.multiply(rotationMatrix, rotY, rotationMatrix);
         mat4.multiply(rotationMatrix, rotX, rotationMatrix);
@@ -346,47 +368,65 @@ function drawScene()
         ctx.fill();
         ctx.stroke();
 
-        let glyph = glyphList[face.number];
+        const glyph = glyphList[face.number];
         if (glyph)
         {
-            const glyphScale = 80;
+            const aspect = canvas.width / canvas.height;
+const near = 0.1;
+const far = 10;
 
+const projectionMatrix = mat4.create();
+const modelViewMatrix = mat4.create();
+
+mat4.perspective(projectionMatrix, Math.PI * 0.5 * fov, aspect, near, far);
+mat4.translate(modelViewMatrix, modelViewMatrix, [ 0, 0, -5 * zoom ]);
+mat4.multiply(modelViewMatrix, modelViewMatrix, rotationMatrix);
+
+            const glyphScale = 0.5;
+        
+            const v0 = defaultVertexList[face.vertices[0]];
+            const v1 = defaultVertexList[face.vertices[1]];
+            const v2 = defaultVertexList[face.vertices[2]];
+        
             const center = [
-                (v1[0] + v2[0] + v3[0]) / 3,
-                (v1[1] + v2[1] + v3[1]) / 3,
-                0
+                (v0[0] + v1[0] + v2[0]) / 3,
+                (v0[1] + v1[1] + v2[1]) / 3,
+                (v0[2] + v1[2] + v2[2]) / 3
             ];
         
-            const xdir = vec3.subtract([], v2, v1);
-            vec3.normalize(xdir, xdir);
-        
-            const temp = vec3.subtract([], v3, v1);
-            const normal = vec3.cross([], xdir, temp);
-            vec3.normalize(normal, normal);
-        
-            const ydir = vec3.cross([], normal, xdir);
-            vec3.normalize(ydir, ydir);
+            const xdir = vec3.normalize([], vec3.subtract([], v1, v0));
+            const normal = vec3.normalize([], vec3.cross([], xdir, vec3.subtract([], v2, v0)));
+            const ydir = vec3.normalize([], vec3.cross([], normal, xdir));
         
             for (const [ [x1, y1], [x2, y2] ] of glyph)
             {
-                const p1 = [
-                    center[0] + glyphScale * (x1 * xdir[0] + y1 * ydir[0]),
-                    center[1] + glyphScale * (x1 * xdir[1] + y1 * ydir[1])
-                ];
-                const p2 = [
-                    center[0] + glyphScale * (x2 * xdir[0] + y2 * ydir[0]),
-                    center[1] + glyphScale * (x2 * xdir[1] + y2 * ydir[1])
-                ];
+                const p1 = vec3.scaleAndAdd([], center, xdir, x1 * glyphScale);
+                vec3.scaleAndAdd(p1, p1, ydir, y1 * glyphScale);
+                const p2 = vec3.scaleAndAdd([], center, xdir, x2 * glyphScale);
+                vec3.scaleAndAdd(p2, p2, ydir, y2 * glyphScale);
+        
+                const v4_1 = vec4.fromValues(p1[0], p1[1], p1[2], 1);
+                const v4_2 = vec4.fromValues(p2[0], p2[1], p2[2], 1);
+        
+                vec4.transformMat4(v4_1, v4_1, modelViewMatrix);
+                vec4.transformMat4(v4_1, v4_1, projectionMatrix);
+                vec4.transformMat4(v4_2, v4_2, modelViewMatrix);
+                vec4.transformMat4(v4_2, v4_2, projectionMatrix);
+        
+                const sx1 = (v4_1[0] / v4_1[3]) * halfWidth;
+                const sy1 = -(v4_1[1] / v4_1[3]) * halfHeight;
+                const sx2 = (v4_2[0] / v4_2[3]) * halfWidth;
+                const sy2 = -(v4_2[1] / v4_2[3]) * halfHeight;
         
                 ctx.beginPath();
-                ctx.moveTo(p1[0], p1[1]);
-                ctx.lineTo(p2[0], p2[1]);
+                ctx.moveTo(sx1, sy1);
+                ctx.lineTo(sx2, sy2);
                 ctx.strokeStyle = glyphColor;
                 ctx.lineWidth = 2.0;
                 ctx.stroke();
             }
         }
-        
+                
         ctx.restore();
     }
 
