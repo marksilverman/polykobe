@@ -1,6 +1,5 @@
 // polykobe.js
 //
-const φ = (1 + Math.sqrt(5)) / 2;
 const rotateBy = Math.PI / 6;
 const edgeColor = "orange";
 const selectedColor = "purple"
@@ -21,15 +20,15 @@ const rectTop = rect.top;
 
 let ctx = canvas.getContext('2d');
 
-let rotationMatrix = mat4.fromValues(
+let defaultRotationMatrix = mat4.fromValues(
     -0.309017, -0.755761,  0.577350,  0.000000,
     -0.809017, -0.110264, -0.577350,  0.000000,
      0.500000, -0.645497, -0.577350,  0.000000,
      0.000000,  0.000000,  0.000000,  1.000000
 );
-const defaultRotation = mat4.clone(rotationMatrix);
+const rotationMatrix = mat4.clone(defaultRotationMatrix);
 
-let scale = 300.0, prevX = 0, prevY = 0;
+let fov = 0.5, zoom = 2.0, /*scale = 0.5, */ prevX = 0, prevY = 0;
 let isDragging = false, redraw = true;
 let selectedFace = null;
 
@@ -64,7 +63,6 @@ function loadState(fileList)
                 if (!face) continue;
                 face.state = f.state;
                 face.number = f.number;
-                //face.locked = f.locked;
                 if (f.state !== unknownState) face.locked = true;
             }
         } catch {}
@@ -75,7 +73,7 @@ function loadState(fileList)
 
 function resetRotation()
 {
-    mat4.copy(rotationMatrix, defaultRotation);
+    mat4.copy(rotationMatrix, defaultRotationMatrix);
     redraw = true;
 }
 
@@ -125,7 +123,6 @@ function setNumber(n)
     redraw = true;
 }
 
-
 function animateRotation(axis, angle, steps = 20)
 {
     let count = 0;
@@ -147,23 +144,43 @@ function animateRotation(axis, angle, steps = 20)
 
 function getTransformedVertices()
 {
-    return defaultVertexList.map(v =>
+    //const fov = Math.PI * 0.5 * fov; // scale / 400.0;
+    const aspect = canvas.width / canvas.height;
+    const near = 0.1;
+    const far = 10;
+
+    const projectionMatrix = mat4.create();
+    const modelViewMatrix = mat4.create();
+
+    mat4.perspective(projectionMatrix, Math.PI * 0.5 * fov, aspect, near, far);
+    mat4.translate(modelViewMatrix, modelViewMatrix, [ 0, 0, -5 * zoom ]);
+    //mat4.scale(modelViewMatrix, modelViewMatrix, [ scale, scale, scale ]);
+    mat4.multiply(modelViewMatrix, modelViewMatrix, rotationMatrix);
+
+    let result = [ ];
+    for (const v of defaultVertexList)
     {
-        const xyz = vec3.clone(v);
-        vec3.scale(xyz, xyz, scale);
-        vec3.transformMat4(xyz, xyz, rotationMatrix);
-        return xyz;
-    });
+        const v4 = vec4.fromValues(v[0], v[1], v[2], 1);
+        vec4.transformMat4(v4, v4, modelViewMatrix);
+        vec4.transformMat4(v4, v4, projectionMatrix);
+
+        const x = (v4[0] / v4[3]) * halfWidth;
+        const y = -(v4[1] / v4[3]) * halfHeight;
+        result.push([ x, y, 0 ]);
+    }
+    return result;
 }
+
+
 
 function pickFaceAtCanvasXY(x, y)
 {
     const vertexList = getTransformedVertices();
     for (const face of faceList)
     {
-        const v1 = vertexList[face.vidx1];
-        const v2 = vertexList[face.vidx2];
-        const v3 = vertexList[face.vidx3];
+        const v1 = vertexList[face.vertices[0]];
+        const v2 = vertexList[face.vertices[1]];
+        const v3 = vertexList[face.vertices[2]];
         if (!isFaceVisible(v1, v2, v3)) continue;
         if (pointInTriangle([x, y], v1, v2, v3))
             return face;
@@ -180,8 +197,8 @@ function main()
     document.addEventListener("keydown", (e) => {
         if (e.key === 'a') animateRotation('y', -rotateBy);
         else if (e.key === 'd') animateRotation('y', rotateBy);
-        else if (e.key === 'w') animateRotation('x', -rotateBy);
-        else if (e.key === 's') animateRotation('x', rotateBy);
+        else if (e.key === 'w') animateRotation('x', rotateBy);
+        else if (e.key === 's') animateRotation('x', -rotateBy);
         else if (e.key === 'q') animateRotation('z', -rotateBy);
         else if (e.key === 'e') animateRotation('z', rotateBy);
         else if (e.key === ' ') toggleState();
@@ -254,6 +271,7 @@ function main()
         redraw = true;
     });
 
+    document.getElementById("polyhedronName").value = polyhedronName;
     drawScene();
 }
 
@@ -296,9 +314,9 @@ function drawScene()
     // render each visible face
     for (const face of faceList)
     {
-        const v1 = vertexList[face.vidx1];
-        const v2 = vertexList[face.vidx2];
-        const v3 = vertexList[face.vidx3];
+        const v1 = vertexList[face.vertices[0]];
+        const v2 = vertexList[face.vertices[1]];
+        const v3 = vertexList[face.vertices[2]];
         
         if (!isFaceVisible(v1, v2, v3))
             continue;
@@ -308,12 +326,12 @@ function drawScene()
     
         if (selectedFace == face)
         {
-            ctx.lineWidth = 8.0 * (scale / 200.0);
+            ctx.lineWidth = 8.0; // * (scale / 200.0);
             ctx.strokeStyle = selectedColor;
         }
         else
         {
-            ctx.lineWidth = 1.0 * (scale / 200.0);
+            ctx.lineWidth = 1.0; // * (scale / 200.0);
             ctx.strokeStyle = edgeColor;
         }
 
@@ -331,7 +349,7 @@ function drawScene()
         let glyph = glyphList[face.number];
         if (glyph)
         {
-            const glyphScale = scale / 3.0;
+            const glyphScale = 80;
 
             const center = [
                 (v1[0] + v2[0] + v3[0]) / 3,
@@ -364,7 +382,7 @@ function drawScene()
                 ctx.moveTo(p1[0], p1[1]);
                 ctx.lineTo(p2[0], p2[1]);
                 ctx.strokeStyle = glyphColor;
-                ctx.lineWidth = 2.0 * (scale / 100.0);
+                ctx.lineWidth = 2.0;
                 ctx.stroke();
             }
         }

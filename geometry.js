@@ -1,148 +1,85 @@
 ﻿// geometry.js
 //
 
-// The pentakis icosidodecahedron (or subdivided icosahedron) is a convex polyhedron
-// with 80 triangular faces, 120 edges, and 42 vertices. 20 of the faces are equilateral
-// triangles. The edges and vertices come in two sizes.
-//
-const defaultVertexList = [ 
-    [ -1.000000,  0.000000, 0.000000 ], 
-    [ -0.809017, -0.309017, -0.500000 ], 
-    [ -0.809017, -0.309017, 0.500000 ], 
-    [ -0.809017, 0.309017, -0.500000 ], 
-    [ -0.809017, 0.309017, 0.500000 ], 
-    [ -0.808672, -0.499787, 0.000000 ], 
-    [ -0.808672, 0.499787, 0.000000 ], 
-    [ -0.500000, -0.809017, -0.309017 ], 
-    [ -0.500000, -0.809017, 0.309017 ], 
-    [ -0.500000, 0.809017, -0.309017 ], 
-    [ -0.500000, 0.809017, 0.309017 ], 
-    [ -0.499787, 0.000000, -0.808672 ], 
-    [ -0.499787, 0.000000, 0.808672 ], 
-    [ -0.309017, -0.500000, -0.809017 ], 
-    [ -0.309017, -0.500000, 0.809017 ], 
-    [ -0.309017, 0.500000, -0.809017 ], 
-    [ -0.309017, 0.500000, 0.809017 ], 
-    [ 0.000000, -1.000000, 0.000000 ], 
-    [ 0.000000, -0.808672, -0.499787 ], 
-    [ 0.000000, -0.808672, 0.499786 ], 
-    [ 0.000000, 0.000000, -1.000000 ], 
-    [ 0.000000, 0.000000, 1.000000 ], 
-    [ 0.000000, 0.808672, -0.499787 ], 
-    [ 0.000000, 0.808672, 0.499786 ], 
-    [ 0.000000, 1.000000, 0.000000 ], 
-    [ 0.309017, -0.500000, -0.809017 ], 
-    [ 0.309017, -0.500000, 0.809017 ], 
-    [ 0.309017, 0.500000, -0.809017 ], 
-    [ 0.309017, 0.500000, 0.809017 ], 
-    [ 0.499786, 0.000000, -0.808672 ], 
-    [ 0.499786, 0.000000, 0.808672 ], 
-    [ 0.500000, -0.809017, -0.309017 ], 
-    [ 0.500000, -0.809017, 0.309017 ], 
-    [ 0.500000, 0.809017, -0.309017 ], 
-    [ 0.500000, 0.809017, 0.309017 ], 
-    [ 0.808672, -0.499787, 0.000000 ], 
-    [ 0.808672, 0.499787, 0.000000 ], 
-    [ 0.809017, -0.309017, -0.500000 ], 
-    [ 0.809017, -0.309017, 0.500000 ], 
-    [ 0.809017, 0.309017, -0.500000 ], 
-    [ 0.809017, 0.309017, 0.500000 ], 
-    [ 1.000000, 0.000000, 0.000000 ]
- ];
+const φ = (1 + Math.sqrt(5)) / 2;
+const C0 = 0.9270509831248423;
+const C1 = 1.3305869973355014;
+const C2 = 2.152934986677507;
+const C3 = 2.4270509831248424;
 
-// each face has three vertices (each one is an index into the vertex array)
-// plus optional color and text
-var faceList = [  ]
-// var edgeList = [  ]
+//const x = Math.cbrt((φ + Math.sqrt(φ-5/27))/2) + Math.cbrt((φ - Math.sqrt(φ-5/27))/2);
+//const C0 = φ * (3 - (x^2));
+//const C1 = x * φ - 1 - φ;
+//const C2 = (1 + φ - x) / (x^3);
+//const C3 = x * φ * (x - φ);
+const polyhedronName = "Pentakis dodecahedron";
 
-function pushFace(a, b, c, new_state=0, new_text="", new_locked=false)
+// generated with help from https://kitwallace.co.uk/polyhedra/solid-index.xq
+
+const defaultVertexList = [
+  [ 0, C0, C3 ], [ 0, C0, -C3 ], [ 0, -C0, C3 ], [ 0, -C0, -C3 ],
+  [ C3, 0, C0 ], [ C3, 0, -C0 ], [ -C3, 0, C0 ], [ -C3, 0, -C0 ],
+  [ C0, C3, 0 ], [ C0, -C3, 0 ], [ -C0, C3, 0 ], [ -C0, -C3, 0 ],
+  [ C1, 0, C2 ], [ C1, 0, -C2 ], [ -C1, 0, C2 ], [ -C1, 0, -C2 ],
+  [ C2, C1, 0 ], [ C2, -C1, 0 ], [ -C2, C1, 0 ], [ -C2, -C1, 0 ],
+  [ 0, C2, C1 ], [ 0, C2, -C1 ], [ 0, -C2, C1 ], [ 0, -C2, -C1 ],
+  [ 1.5, 1.5, 1.5 ], [ 1.5, 1.5, -1.5 ], [ 1.5, -1.5, 1.5 ], [ 1.5, -1.5, -1.5 ],
+  [ -1.5, 1.5, 1.5 ], [ -1.5, 1.5, -1.5 ], [ -1.5, -1.5, 1.5 ], [ -1.5, -1.5, -1.5 ]
+];
+
+const faceIndexList = [
+  [ 2, 0, 12 ], [ 26, 2, 12 ], [ 4, 26, 12 ], [ 24, 4, 12 ], [ 0, 24, 12 ],
+  [ 1, 3, 13 ], [ 25, 1, 13 ], [ 5, 25, 13 ], [ 27, 5, 13 ], [ 3, 27, 13 ],
+  [ 0, 2, 14 ], [ 28, 0, 14 ], [ 6, 28, 14 ], [ 30, 6, 14 ], [ 2, 30, 14 ],
+  [ 3, 1, 15 ], [ 31, 3, 15 ], [ 7, 31, 15 ], [ 29, 7, 15 ], [ 1, 29, 15 ],
+  [ 5, 4, 16 ], [ 25, 5, 16 ], [ 8, 25, 16 ], [ 24, 8, 16 ], [ 4, 24, 16 ],
+  [ 4, 5, 17 ], [ 26, 4, 17 ], [ 9, 26, 17 ], [ 27, 9, 17 ], [ 5, 27, 17 ],
+  [ 6, 7, 18 ], [ 28, 6, 18 ], [ 10, 28, 18 ], [ 29, 10, 18 ], [ 7, 29, 18 ],
+  [ 7, 6, 19 ], [ 31, 7, 19 ], [ 11, 31, 19 ], [ 30, 11, 19 ], [ 6, 30, 19 ],
+  [ 10, 8, 20 ], [ 28, 10, 20 ], [ 0, 28, 20 ], [ 24, 0, 20 ], [ 8, 24, 20 ],
+  [ 8, 10, 21 ], [ 25, 8, 21 ], [ 1, 25, 21 ], [ 29, 1, 21 ], [ 10, 29, 21 ],
+  [ 9, 11, 22 ], [ 26, 9, 22 ], [ 2, 26, 22 ], [ 30, 2, 22 ], [ 11, 30, 22 ],
+  [ 11, 9, 23 ], [ 31, 11, 23 ], [ 3, 31, 23 ], [ 27, 3, 23 ], [ 9, 27, 23 ]
+];
+
+const edgeMap = new Map();
+const edgeList = [ ];
+const faceList = [ ];
+
+function getEdgeKey(a, b)
 {
-    // let faceIdx = faceList.length;
-    // let edgeIdx = edgeList.length;
-    // edgeList[`${a}|${b}`].push( { face:  faceIdx } );
-    faceList.push({vidx1: a, vidx2: b, vidx3: c, state: new_state, text: new_text, locked: new_locked});
+  return a < b ? `${a},${b}` : `${b},${a}`;
 }
 
-pushFace(32, 31, 35);
-pushFace(2, 0, 5);
-pushFace(28, 21, 30);
-pushFace(39, 37, 29);
-pushFace(4, 2, 12);
-pushFace(15, 20, 11);
-pushFace(34, 24, 23);
-pushFace(26, 14, 19);
-pushFace(27, 15, 22);
-pushFace(31, 17, 18);
-pushFace(40, 41, 36);
-pushFace(34, 28, 40);
-pushFace(39, 27, 33);
-pushFace(38, 26, 32);
-pushFace(31, 25, 37);
-pushFace(4, 16, 10);
-pushFace(9, 15, 3);
-pushFace(8, 14, 2);
-pushFace(1, 13, 7);
-pushFace(33, 24, 34);
-pushFace(10, 24, 9);
-pushFace(32, 17, 31);
-pushFace(7, 17, 8);
-pushFace(38, 41, 40);
-pushFace(39, 41, 37);
-pushFace(4, 0, 2);
-pushFace(1, 0, 3);
-pushFace(16, 21, 28);
-pushFace(26, 21, 14);
-pushFace(27, 20, 15);
-pushFace(13, 20, 25);
-pushFace(10, 9, 6);
-pushFace(9, 3, 6);
-pushFace(3, 0, 6);
-pushFace(0, 4, 6);
-pushFace(4, 10, 6);
-pushFace(31, 37, 35);
-pushFace(37, 41, 35);
-pushFace(41, 38, 35);
-pushFace(38, 32, 35);
-pushFace(0, 1, 5);
-pushFace(1, 7, 5);
-pushFace(7, 8, 5);
-pushFace(8, 2, 5);
-pushFace(21, 26, 30);
-pushFace(26, 38, 30);
-pushFace(38, 40, 30);
-pushFace(40, 28, 30);
-pushFace(37, 25, 29);
-pushFace(25, 20, 29);
-pushFace(20, 27, 29);
-pushFace(27, 39, 29);
-pushFace(2, 14, 12);
-pushFace(14, 21, 12);
-pushFace(21, 16, 12);
-pushFace(16, 4, 12);
-pushFace(20, 13, 11);
-pushFace(13, 1, 11);
-pushFace(1, 3, 11);
-pushFace(3, 15, 11);
-pushFace(24, 10, 23);
-pushFace(10, 16, 23);
-pushFace(16, 28, 23);
-pushFace(28, 34, 23);
-pushFace(14, 8, 19);
-pushFace(8, 17, 19);
-pushFace(17, 32, 19);
-pushFace(32, 26, 19);
-pushFace(15, 9, 22);
-pushFace(9, 24, 22);
-pushFace(24, 33, 22);
-pushFace(33, 27, 22);
-pushFace(17, 7, 18);
-pushFace(7, 13, 18);
-pushFace(13, 25, 18);
-pushFace(25, 31, 18);
-pushFace(41, 39, 36);
-pushFace(39, 33, 36);
-pushFace(33, 34, 36);
-pushFace(34, 40, 36);
+function getEdgeIndex(a, b, faceIndex)
+{
+  const key = getEdgeKey(a, b);
+  if (edgeMap.has(key))
+  {
+    const entry = edgeMap.get(key);
+    entry.faces.push(faceIndex);
+    return entry.index;
+  }
+  const index = edgeList.length;
+  const entry = { vertices: [ a, b ], faces: [ faceIndex ] };
+  edgeMap.set( key, { index, faces: entry.faces } );
+  edgeList.push( entry );
+  return index;
+}
+
+for (let i = 0; i < faceIndexList.length; i++)
+{
+  const [ a, b, c ] = faceIndexList[ i ];
+  const e0 = getEdgeIndex( a, b, i );
+  const e1 = getEdgeIndex( b, c, i );
+  const e2 = getEdgeIndex( c, a, i );
+  faceList.push({
+    vertices: [ a, b, c ],
+    edges: [ e0, e1, e2 ],
+    state: 0,
+    locked: false
+  });
+}
 
 const glyphList = { };
 
