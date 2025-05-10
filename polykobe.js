@@ -28,7 +28,7 @@ let defaultRotationMatrix = mat4.fromValues(
 );
 const rotationMatrix = mat4.clone(defaultRotationMatrix);
 
-let fov = 0.5, zoom = 2.0, /*scale = 0.5, */ prevX = 0, prevY = 0;
+let fov = 0.2, zoom = 4.0, prevX = 0, prevY = 0;
 let isDragging = false, redraw = true;
 let selectedFace = null;
 
@@ -47,6 +47,22 @@ function saveState()
     a.download = "polykobe.json";
     a.click();
     URL.revokeObjectURL(url);
+}
+
+function loadFake()
+{
+    const data = JSON.parse(defaultPuzzle);
+    for (const f of data)
+    {
+        const face = faceList[f.index];
+        if (!face) continue;
+        face.state = f.state;
+        if (f.number == undefined)
+            face.number = null;
+        else
+            face.number = f.number;
+        face.locked = f.locked;
+    }
 }
 
 function loadState(fileList)
@@ -294,6 +310,9 @@ function main()
     });
 
     document.getElementById("polyhedronName").value = polyhedronName;
+    document.getElementById("numberOfFaces").value = faceList.length;
+    document.getElementById("numberOfEdges").value = edgeList.length;
+    document.getElementById("numberOfVertices").value = defaultVertexList.length;
     drawScene();
 }
 
