@@ -199,7 +199,7 @@ glyphList[0] = [
     [[-0.2, 0.1], [-0.1, 0.25]]
 ];
 
-const defaultPuzzle = `[{"index":0,"state":2,"number":1,"locked":true},
+const defaultPuzzle = [{"index":0,"state":2,"number":1,"locked":true},
 {"index":1,"state":0,"number":null,"locked":false},
 {"index":2,"state":0,"number":null,"locked":false},
 {"index":3,"state":2,"number":2,"locked":true},
@@ -258,4 +258,4 @@ const defaultPuzzle = `[{"index":0,"state":2,"number":1,"locked":true},
 {"index":56,"state":0,"number":null,"locked":false},
 {"index":57,"state":0,"number":null,"locked":false},
 {"index":58,"state":2,"number":2,"locked":true},
-{"index":59,"state":0,"number":null,"locked":false}]`;
+{"index":59,"state":0,"number":null,"locked":false}];

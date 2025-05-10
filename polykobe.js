@@ -51,7 +51,27 @@ function saveState()
 
 function loadFake()
 {
-    const data = JSON.parse(defaultPuzzle);
+    for (const f of defaultPuzzle)
+    {
+        const face = faceList[f.index];
+        if (!face) continue;
+        face.state = f.state;
+        if (f.number == undefined)
+            face.number = null;
+        else
+            face.number = f.number;
+        face.locked = f.locked;
+    }
+    redraw = true;
+}
+
+function loadState(fileList)
+{
+    if (!fileList.length) return;
+    const file = fileList[0];
+    const reader = new FileReader();
+    reader.readAsText(file);
+    const data = JSON.parse(e.target.result);
     for (const f of data)
     {
         const face = faceList[f.index];
@@ -63,30 +83,6 @@ function loadFake()
             face.number = f.number;
         face.locked = f.locked;
     }
-}
-
-function loadState(fileList)
-{
-    if (!fileList.length) return;
-    const file = fileList[0];
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const data = JSON.parse(e.target.result);
-            for (const f of data)
-            {
-                const face = faceList[f.index];
-                if (!face) continue;
-                face.state = f.state;
-                if (f.number == undefined)
-                    face.number = null;
-                else
-                    face.number = f.number;
-                face.locked = f.locked;
-            }
-        } catch { }
-    };
-    reader.readAsText(file);
     redraw = true;
 }
 
