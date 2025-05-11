@@ -111,6 +111,38 @@ function toggleState()
         selectedFace.state = (selectedFace.state + 1) % stateList.length;
     redraw = true;
 }
+function victory()
+{
+    const start = performance.now();
+    const duration = 3000;
+    const colorInterval = 100;
+    const colors = ["red", "lime", "yellow", "cyan", "magenta", "orange"];
+    let lastColorChange = 0;
+
+    function animate(now)
+    {
+        const elapsed = now - start;
+        if (elapsed > duration)
+        {
+            for (const face of faceList)
+                delete face._tempColor;
+            redraw = true;
+            return;
+        }
+
+        if (now - lastColorChange > colorInterval)
+        {
+            for (const face of faceList)
+                face._tempColor = colors[Math.floor(Math.random() * colors.length)];
+            lastColorChange = now;
+        }    
+
+        redraw = true;
+        requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+}
 
 function checkSolution()
 {
@@ -123,8 +155,9 @@ function checkSolution()
             break;
         }
     }
+    
     if (solved)
-        stateColorList.unshaded = 'gold';
+        victory();
     redraw = true;
 
 }
@@ -415,8 +448,11 @@ function drawScene()
         ctx.lineTo(v4[0], v4[1]);        
 
         ctx.closePath();
-        ctx.fillStyle = stateColorList[stateList[face.state]];
-
+        if (face._tempColor)
+            ctx.fillStyle = face._tempColor;
+        else
+            ctx.fillStyle = stateColorList[stateList[face.state]];
+        
         ctx.fill();
         ctx.stroke();
 
