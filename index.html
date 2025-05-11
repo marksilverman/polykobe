@@ -37,35 +37,20 @@
 <br>
 
 <div id="section1">
-    <button onclick="loadPuzzle(puzzle1)">LOAD PUZZLE #1</button>&nbsp;
-    <button onclick="loadPuzzle(puzzle2)">LOAD PUZZLE #2</button>&nbsp;
+    <button onclick="loadPuzzle(puzzle1)">LOAD PUZZLE #1</button>
+    <button onclick="loadPuzzle(puzzle2)">LOAD PUZZLE #2</button>
     <button onclick="loadPuzzle(puzzle3)">LOAD PUZZLE #3</button><br><br>
-    <button onclick="checkSolution()">CHECK SOLUTION</button>
+    <button style="height:40px;" onclick="checkSolution()">CHECK SOLUTION</button>
     </div>
     <br>
     
 <div id="section1">
-    <label>type of polyhedron:</label><input type="text" readonly width=auto id="polyhedronName"><br><br>
-    <label>faces:</label><input type="text" readonly width=auto id="numberOfFaces"><br><br>
-    <label>edges:</label><input type="text" readonly width=auto id="numberOfEdges"><br><br>
-    <label>vertices:</label><input type="text" readonly width=auto id="numberOfVertices">
-</div>
-<br>
-
-<div id="section1">
     <label>zoom: </label>
     <input type="range" min=-4 max=0.1 value=-0.58 step=0.01 class="slider"
-    oninput="(function() { zoom = parseFloat(value); redraw = true;
-        document.getElementById('zoom').value = zoom; })();">
-    <input type="text" readonly width=auto id="zoom"><br>
-    <br>
+    oninput="(function() { zoom = parseFloat(value); redraw = true;">
     <label>fov:</label>
     <input type="range" min=-2.0 max=-0.01 value=-0.36 step=0.01 class="slider"
-    oninput="(function() {
-        fov = parseFloat(value);
-        document.getElementById('fov').value = fov;
-        redraw = true; })();">
-    <input type="text" readonly width=auto id="fov"><br>
+    oninput="(function() { fov = parseFloat(value); redraw = true; })();">
 </div>
 <br>
 
@@ -73,23 +58,22 @@
     <button onclick="animateRotation('x', rotateBy);">Rotate X (w/s)</button>
     <button onclick="animateRotation('y', rotateBy);">Rotate Y (a/d)</button>
     <button onclick="animateRotation('z', rotateBy);">Rotate Z (q/e)</button>
-    <button onclick="resetRotation()">Reset (r)</button>
+    <button onclick="resetRotation()">Reset Rotation (r)</button>
 </div>
 <br>
 
 <div id="section1">
-    <button onclick="clearFaces()">clear all</button>
-    <button onclick="clearMost()">clear most</button>
     <button onclick="unlockFaces()">unlock all</button>
-    <button onclick="setSolution()">set solution</button>
+    <button onclick="clearFaces()">clear all</button>
+    <button onclick="clearMost()">restart</button>
+    <button onclick="setSolution()">set as solution</button>
 </div>
 <br>
 
 <div id="section1">
-<button onclick="loadFake()">LOAD DEFAULT PUZZLE</button>
-<button onclick="document.getElementById('fileInput').click()">Load</button>
+<button onclick="document.getElementById('fileInput').click()">Load File</button>
 <input onchange="loadState(this.files)" type="file" id="fileInput" accept=".json,application/json" style="display:none">
-<button onclick="saveState()">Save</button>
+<button onclick="saveState()">Save File</button>
 </div>
 <br>
 
@@ -111,6 +95,14 @@
 <button onclick="unlock()"> UNLOCK (u) </button>
 <br><br>
 <button onclick="toggleState()">Toggle Shading (spacebar)</button>
+</div>
+
+<br>
+<div id="section1">
+    <label>type of polyhedron:</label><input type="text" readonly width=auto id="polyhedronName"><br><br>
+    <label>faces:</label><input type="text" readonly width=auto id="numberOfFaces"><br><br>
+    <label>edges:</label><input type="text" readonly width=auto id="numberOfEdges"><br><br>
+    <label>vertices:</label><input type="text" readonly width=auto id="numberOfVertices">
 </div>
 
 </div>
