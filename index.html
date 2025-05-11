@@ -20,13 +20,32 @@
 <br>
 
 <div id="section1">
+    Standard <a href=https://en.wikipedia.org/wiki/Nurikabe_(puzzle)>Nurikabe</a> rules apply (more or less):
+    <ul>
+    <li>color all squares either black (shaded) or green (unshaded)</li>
+    <li>shaded squares must form a single region connected by edges</li>
+    <li>you cannot fully shade a 2x2 block</li>
+    <li>all unshaded squares must be part of a region that includes a number</li>
+    <li>the number indicates the size of the region</li>
+    <li>regions are formed by squares that share an edge</li>
+    <li>two different unshaded regions cannot share an edge, but they can share a vertex (corner)</li>
+    </ul>
+    Click on LOAD DEFAULT PUZZLE for a default puzzle.
+</div>
+<br>
+
+<div id="section1">
+    <button onclick="loadFake()">LOAD DEFAULT PUZZLE</button>
+    </div>
+    <br>
+    
+<div id="section1">
     <label>type of polyhedron:</label><input type="text" readonly width=auto id="polyhedronName"><br><br>
     <label>faces:</label><input type="text" readonly width=auto id="numberOfFaces"><br><br>
     <label>edges:</label><input type="text" readonly width=auto id="numberOfEdges"><br><br>
     <label>vertices:</label><input type="text" readonly width=auto id="numberOfVertices">
 </div>
 <br>
-
 
 <div id="section1">
     <label>zoom: </label>
