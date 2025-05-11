@@ -9,6 +9,9 @@
     <script src="glyphs.js" defer></script>
     <script src="geometry.js" defer></script>
     <script src="polykobe.js" defer></script>
+    <script src="puzzle1.js" defer></script>
+    <script src="puzzle2.js" defer></script>
+    <script src="puzzle3.js" defer></script>
 </head>
 
 <body>
@@ -30,12 +33,13 @@
     <li>regions are formed by squares that share an edge</li>
     <li>two different unshaded regions cannot share an edge, but they can share a vertex (corner)</li>
     </ul>
-    Click on LOAD DEFAULT PUZZLE for a default puzzle.
 </div>
 <br>
 
 <div id="section1">
-    <button onclick="loadFake()">LOAD DEFAULT PUZZLE</button><br><br>
+    <button onclick="loadPuzzle(puzzle1)">LOAD PUZZLE #1</button>&nbsp;
+    <button onclick="loadPuzzle(puzzle2)">LOAD PUZZLE #2</button>&nbsp;
+    <button onclick="loadPuzzle(puzzle3)">LOAD PUZZLE #3</button><br><br>
     <button onclick="checkSolution()">CHECK SOLUTION</button>
     </div>
     <br>

@@ -52,9 +52,9 @@ function saveState()
     URL.revokeObjectURL(url);
 }
 
-function loadFake()
+function loadPuzzle(puzzle)
 {
-    for (const f of defaultPuzzle)
+    for (const f of puzzle)
     {
         const face = faceList[f.index];
         if (!face) continue;

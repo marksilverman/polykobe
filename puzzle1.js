@@ -1,4 +1,5 @@
-[{"index":0,"state":0,"number":null,"locked":false,"solution":2},
+const puzzle1 = [
+{"index":0,"state":0,"number":null,"locked":false,"solution":2},
 {"index":1,"state":2,"number":2,"locked":true,"solution":2},
 {"index":2,"state":2,"number":4,"locked":true,"solution":2},
 {"index":3,"state":2,"number":4,"locked":true,"solution":2},
