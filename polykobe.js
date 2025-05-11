@@ -41,7 +41,7 @@ function saveState()
     for (let i = 0; i < faceList.length; i++)
     {
         const f = faceList[i];
-        data.push({ index: i, state: f.state, number: f.number, locked: f.locked });
+        data.push({ index: i, state: f.state, number: f.number, locked: f.locked, solution: f.solution });
     }
     const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
     const url = URL.createObjectURL(blob);
@@ -63,13 +63,19 @@ function loadFake()
             face.number = null;
         else
             face.number = f.number;
-        if (f.solved == undefined)
-            face.solved = null;
+        if (f.solution == undefined)
+            face.solution = null;
         else
-            face.solved = f.solved;
+            face.solution = f.solution;
         face.locked = f.locked;
     }
     redraw = true;
+}
+
+function setSolution()
+{
+    for (const f of faceList)
+        f.solution = f.state;
 }
 
 function loadState(fileList)
@@ -88,10 +94,10 @@ function loadState(fileList)
                 face.number = null;
             else
                 face.number = f.number;
-            if (f.solved == undefined)
-                face.solved = null;
+            if (f.solution == undefined)
+                face.solution = null;
             else
-                face.solved = f.solved;
+                face.solution = f.solution;
             face.locked = f.locked;
         }
     };
@@ -149,7 +155,7 @@ function checkSolution()
     let solved = true;
     for (var face of faceList)
     {
-        if (face.state !== face.solved)
+        if (face.state !== face.solution)
         {
             solved = false;
             break;
