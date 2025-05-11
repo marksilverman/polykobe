@@ -17,6 +17,9 @@ const halfWidth = canvas.width * 0.5;
 const halfHeight = canvas.height * 0.5;
 const rectLeft = rect.left;
 const rectTop = rect.top;
+const aspect = canvas.width / canvas.height;
+const near = 0.1;
+const far = 1000;
 
 let ctx = canvas.getContext('2d');
 
@@ -28,7 +31,7 @@ let defaultRotationMatrix = mat4.fromValues(
 );
 const rotationMatrix = mat4.clone(defaultRotationMatrix);
 
-let fov = 0.2, zoom = 4.0, prevX = 0, prevY = 0;
+let fov = -0.36, zoom = -0.58, prevX = 0, prevY = 0;
 let isDragging = false, redraw = true;
 let selectedFace = null;
 
@@ -60,6 +63,10 @@ function loadFake()
             face.number = null;
         else
             face.number = f.number;
+        if (f.solved == undefined)
+            face.solved = null;
+        else
+            face.solved = f.solved;
         face.locked = f.locked;
     }
     redraw = true;
@@ -81,6 +88,10 @@ function loadState(fileList)
                 face.number = null;
             else
                 face.number = f.number;
+            if (f.solved == undefined)
+                face.solved = null;
+            else
+                face.solved = f.solved;
             face.locked = f.locked;
         }
     };
@@ -101,6 +112,22 @@ function toggleState()
     redraw = true;
 }
 
+function checkSolution()
+{
+    let solved = true;
+    for (var face of faceList)
+    {
+        if (face.state !== face.solved)
+        {
+            solved = false;
+            break;
+        }
+    }
+    if (solved)
+        stateColorList.unshaded = 'gold';
+    redraw = true;
+
+}
 function clearMost()
 {
     for (var face of faceList)
@@ -180,17 +207,12 @@ function animateRotation(axis, angle, steps = 20)
 
 function getTransformedVertices()
 {
-    //const fov = Math.PI * 0.5 * fov; // scale / 400.0;
-    const aspect = canvas.width / canvas.height;
-    const near = 0.1;
-    const far = 10;
-
     const projectionMatrix = mat4.create();
     const modelViewMatrix = mat4.create();
 
-    mat4.perspective(projectionMatrix, Math.PI * 0.5 * fov, aspect, near, far);
-    mat4.translate(modelViewMatrix, modelViewMatrix, [ 0, 0, -5 * zoom ]);
-    //mat4.scale(modelViewMatrix, modelViewMatrix, [ scale, scale, scale ]);
+    mat4.perspective(projectionMatrix, fov, aspect, near, far);
+    mat4.translate(modelViewMatrix, modelViewMatrix, [ 0, 0, -5 ]);
+    mat4.scale(modelViewMatrix, modelViewMatrix, [ zoom, zoom, zoom ]);
     mat4.multiply(modelViewMatrix, modelViewMatrix, rotationMatrix);
 
     let result = [ ];
@@ -207,8 +229,6 @@ function getTransformedVertices()
     return result;
 }
 
-
-
 function pickFaceAtCanvasXY(x, y)
 {
     const vertexList = getTransformedVertices();
@@ -217,8 +237,9 @@ function pickFaceAtCanvasXY(x, y)
         const v1 = vertexList[face.vertices[0]];
         const v2 = vertexList[face.vertices[1]];
         const v3 = vertexList[face.vertices[2]];
-        if (!isFaceVisible(v1, v2, v3)) continue;
-        if (pointInTriangle([x, y], v1, v2, v3))
+        const v4 = vertexList[face.vertices[3]];
+        if (!isFaceVisible(v1, v2, v3, v4)) continue;
+        if (pointInFace([x, y], v1, v2, v3, v4))
             return face;
     }
     return null;
@@ -233,10 +254,10 @@ function main()
     document.addEventListener("keydown", (e) => {
         if (e.key === 'a') animateRotation('y', -rotateBy);
         else if (e.key === 'd') animateRotation('y', rotateBy);
-        else if (e.key === 'w') animateRotation('x', rotateBy);
-        else if (e.key === 's') animateRotation('x', -rotateBy);
-        else if (e.key === 'q') animateRotation('z', -rotateBy);
-        else if (e.key === 'e') animateRotation('z', rotateBy);
+        else if (e.key === 'w') animateRotation('x', -rotateBy);
+        else if (e.key === 's') animateRotation('x', rotateBy);
+        else if (e.key === 'q') animateRotation('z', rotateBy);
+        else if (e.key === 'e') animateRotation('z', -rotateBy);
         else if (e.key === ' ') toggleState();
         else if (e.key === 'r') resetRotation();
         else if (/^[1-9]$/.test(e.key)) setNumber(e.key);
@@ -300,8 +321,8 @@ function main()
     
         const rotX = mat4.create();
         const rotY = mat4.create();
-        mat4.fromXRotation(rotX, -angleX);
-        mat4.fromYRotation(rotY, -angleY);
+        mat4.fromXRotation(rotX, angleX);
+        mat4.fromYRotation(rotY, angleY);
         mat4.multiply(rotationMatrix, rotY, rotationMatrix);
         mat4.multiply(rotationMatrix, rotX, rotationMatrix);
         redraw = true;
@@ -314,27 +335,39 @@ function main()
     drawScene();
 }
 
-function pointInTriangle(p, a, b, c)
+function pointInFace(p, a, b, c, d)
 {
     function sign(p1, p2, p3)
     {
         return (p1[0] - p3[0]) * (p2[1] - p3[1]) -
                (p2[0] - p3[0]) * (p1[1] - p3[1]);
     }
-    const d1 = sign(p, a, b);
-    const d2 = sign(p, b, c);
-    const d3 = sign(p, c, a);
-    const hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-    const hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
-    return !(hasNeg && hasPos);
+
+    function inTriangle(p, a, b, c)
+    {
+        const d1 = sign(p, a, b);
+        const d2 = sign(p, b, c);
+        const d3 = sign(p, c, a);
+        const hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+        const hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+        return !(hasNeg && hasPos);
+    }
+
+    return inTriangle(p, a, b, c) || inTriangle(p, c, d, a);
 }
 
-function isFaceVisible(v0, v1, v2)
+function isFaceVisible(v0, v1, v2, v3)
 {
-    const u = vec3.subtract([], v1, v0);
-    const v = vec3.subtract([], v2, v0);
-    const normal = vec3.cross([], u, v);
-    return normal[2] < 0;
+    const u1 = vec3.subtract([], v1, v0);
+    const v1_ = vec3.subtract([], v2, v0);
+    const n1 = vec3.cross([], u1, v1_);
+
+    const u2 = vec3.subtract([], v3, v2);
+    const v2_ = vec3.subtract([], v0, v2);
+    const n2 = vec3.cross([], u2, v2_);
+
+    const avg = vec3.add([], n1, n2);
+    return avg[2] < 0;
 }
 
 function drawScene()
@@ -358,7 +391,7 @@ function drawScene()
         const v3 = vertexList[face.vertices[2]];
         const v4 = vertexList[face.vertices[3]];
         
-        if (!isFaceVisible(v1, v2, v3))
+        if (!isFaceVisible(v1, v2, v3, v4))
             continue;
 
         ctx.save();
@@ -390,29 +423,27 @@ function drawScene()
         const glyph = glyphList[face.number];
         if (glyph)
         {
-            const aspect = canvas.width / canvas.height;
-const near = 0.1;
-const far = 10;
+            const projectionMatrix = mat4.create();
+            const modelViewMatrix = mat4.create();
 
-const projectionMatrix = mat4.create();
-const modelViewMatrix = mat4.create();
-
-mat4.perspective(projectionMatrix, Math.PI * 0.5 * fov, aspect, near, far);
-mat4.translate(modelViewMatrix, modelViewMatrix, [ 0, 0, -5 * zoom ]);
-mat4.multiply(modelViewMatrix, modelViewMatrix, rotationMatrix);
-
-            const glyphScale = 0.5;
+            mat4.perspective(projectionMatrix, fov, aspect, near, far);
+            mat4.translate(modelViewMatrix, modelViewMatrix, [ 0, 0, -5 ]);
+            mat4.scale(modelViewMatrix, modelViewMatrix, [ zoom, zoom, zoom ]);
+            mat4.multiply(modelViewMatrix, modelViewMatrix, rotationMatrix);
+        
+            const glyphScale = 0.4;
         
             const v0 = defaultVertexList[face.vertices[0]];
             const v1 = defaultVertexList[face.vertices[1]];
             const v2 = defaultVertexList[face.vertices[2]];
-        
+            const v3 = defaultVertexList[face.vertices[3]];
+
             const center = [
-                (v0[0] + v1[0] + v2[0]) / 3,
-                (v0[1] + v1[1] + v2[1]) / 3,
-                (v0[2] + v1[2] + v2[2]) / 3
+                (v0[0] + v1[0] + v2[0] + v3[0]) / 4,
+                (v0[1] + v1[1] + v2[1] + v3[1]) / 4,
+                (v0[2] + v1[2] + v2[2] + v3[2]) / 4
             ];
-        
+
             const xdir = vec3.normalize([], vec3.subtract([], v1, v0));
             const normal = vec3.normalize([], vec3.cross([], xdir, vec3.subtract([], v2, v0)));
             const ydir = vec3.normalize([], vec3.cross([], normal, xdir));
@@ -441,7 +472,7 @@ mat4.multiply(modelViewMatrix, modelViewMatrix, rotationMatrix);
                 ctx.moveTo(sx1, sy1);
                 ctx.lineTo(sx2, sy2);
                 ctx.strokeStyle = glyphColor;
-                ctx.lineWidth = 2.0;
+                ctx.lineWidth = 4.0;
                 ctx.stroke();
             }
         }

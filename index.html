@@ -30,13 +30,18 @@
 
 <div id="section1">
     <label>zoom: </label>
-    <input type="range" min=0.5 max=5.0 value=4.0 step=0.01 class="slider" id="zoom"
-    oninput="(function() { zoom = parseFloat(value); redraw = true; })();">
+    <input type="range" min=-4 max=0.1 value=-0.58 step=0.01 class="slider"
+    oninput="(function() { zoom = parseFloat(value); redraw = true;
+        document.getElementById('zoom').value = zoom; })();">
+    <input type="text" readonly width=auto id="zoom"><br>
     <br>
     <label>fov:</label>
-    <input type="range" min=0.2 max=1 value=0.2 step=0.01 class="slider" id="fov"
-    oninput="(function() { fov = parseFloat(value); redraw = true; })();">
-
+    <input type="range" min=-2.0 max=-0.01 value=-0.36 step=0.01 class="slider"
+    oninput="(function() {
+        fov = parseFloat(value);
+        document.getElementById('fov').value = fov;
+        redraw = true; })();">
+    <input type="text" readonly width=auto id="fov"><br>
 </div>
 <br>
 
@@ -49,6 +54,7 @@
 <br>
 
 <div id="section1">
+    <button onclick="checkSolution()">CHECK SOLUTION</button>
     <button onclick="clearFaces()">clear all</button>
     <button onclick="clearMost()">clear most</button>
     <button onclick="unlockFaces()">unlock all</button>
@@ -56,9 +62,10 @@
 <br>
 
 <div id="section1">
-<button onclick="loadFake()">LOAD DEFAULT PUZZLE</button>    
+<button onclick="loadFake()">LOAD DEFAULT PUZZLE</button>
 <button onclick="document.getElementById('fileInput').click()">Load</button>
 <input onchange="loadState(this.files)" type="file" id="fileInput" accept=".json,application/json" style="display:none">
+<button onclick="saveState()">Save</button>
 </div>
 <br>
 
