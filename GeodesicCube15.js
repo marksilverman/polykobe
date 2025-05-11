@@ -4,7 +4,6 @@ const sqrt5 = Math.sqrt(5);
 const φ = (1 + sqrt5) / 2;
 
 const polyhedronName = "Geodesic Cube Pattern 15 [5,2]";
-// Geodesic Cube Pattern 15 [5,2]
 
 const C0 = 0.0255270846395505732706292290989;
 const C1 = 0.0846673185640690818705254335492;

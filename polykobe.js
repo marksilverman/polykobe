@@ -356,6 +356,7 @@ function drawScene()
         const v1 = vertexList[face.vertices[0]];
         const v2 = vertexList[face.vertices[1]];
         const v3 = vertexList[face.vertices[2]];
+        const v4 = vertexList[face.vertices[3]];
         
         if (!isFaceVisible(v1, v2, v3))
             continue;
@@ -378,6 +379,7 @@ function drawScene()
         ctx.moveTo(v1[0], v1[1]);
         ctx.lineTo(v2[0], v2[1]);
         ctx.lineTo(v3[0], v3[1]);        
+        ctx.lineTo(v4[0], v4[1]);        
 
         ctx.closePath();
         ctx.fillStyle = stateColorList[stateList[face.state]];
