@@ -34,6 +34,15 @@ let fov = -0.36, zoom = -0.58, prevX = 0, prevY = 0;
 let isDragging = false, redraw = true;
 let selectedFace = null;
 
+function doSomething()
+{
+    undoIdx += 1;
+    while (undoIdx < undoList.length)
+        undoList.pop();
+    undoList[undoIdx] = structuredClone(undoList[undoIdx - 1]);
+    faceList = undoList[undoIdx];
+}
+
 function saveState()
 {
     const data = [ ];
@@ -53,6 +62,7 @@ function saveState()
 
 function loadPuzzle(puzzle)
 {
+    doSomething();
     for (const f of puzzle)
     {
         const face = faceList[f.index];
@@ -73,6 +83,7 @@ function loadPuzzle(puzzle)
 
 function showSolution()
 {
+    doSomething();
     for (const f of faceList)
         f.state = f.solution;
     redraw = true;
@@ -80,6 +91,7 @@ function showSolution()
 
 function setSolution()
 {
+    doSomething();
     for (const f of faceList)
     {
         f.solution = f.state;
@@ -91,6 +103,7 @@ function setSolution()
 
 function loadState(fileList)
 {
+    doSomething();
     if (!fileList.length) return;
     const file = fileList[0];
     const reader = new FileReader();
@@ -124,8 +137,11 @@ function resetRotation()
 
 function toggleState()
 {
-    if (selectedFace && !selectedFace.locked)
-        selectedFace.state = (selectedFace.state + 1) % stateList.length;
+    if (selectedFace !== null && !faceList[selectedFace].locked)
+    {
+        doSomething();
+        faceList[selectedFace].state = (faceList[selectedFace].state + 1) % stateList.length;
+    }
     redraw = true;
 }
 
@@ -201,25 +217,21 @@ function victory()
 
 function checkSolution()
 {
-    let solved = true;
+    redraw = true;
     for (var face of faceList)
     {
         if (face.state !== face.solution)
         {
-            solved = false;
-            break;
+            defeat();
+            return;
         }
-    }
-    
-    if (solved)
-        victory();
-    else
-        defeat();
-    redraw = true;
-
+    }    
+    victory();
 }
+
 function clearMost()
 {
+    doSomething();
     for (var face of faceList)
     {
         if (face.locked)
@@ -239,6 +251,7 @@ function clearMost()
 
 function clearFaces()
 {
+    doSomething();
     for (var face of faceList)
     {
         if (!face.locked)
@@ -252,6 +265,7 @@ function clearFaces()
 
 function unlockFaces()
 {
+    doSomething();
     for (var face of faceList)
         face.locked = false;
     redraw = true;
@@ -259,15 +273,17 @@ function unlockFaces()
 
 function toggleLock()
 {
-    if (selectedFace)
-        selectedFace.locked = !selectedFace.locked;
+    doSomething();
+    if (selectedFace !== null)
+        faceList[selectedFace].locked = !faceList[selectedFace].locked;
     redraw = true;
 }
 
 function setNumber(n)
 {
-    if (selectedFace && !selectedFace.locked)
-        selectedFace.number = parseInt(n);
+    doSomething();
+    if (selectedFace !== null && !faceList[selectedFace].locked)
+        faceList[selectedFace].number = parseInt(n);
     redraw = true;
 }
 
@@ -324,18 +340,39 @@ function getTransformedVertices()
 function pickFaceAtCanvasXY(x, y)
 {
     const vertexList = getTransformedVertices();
-    for (const face of faceList)
+    for (let idx = 0; idx < faceList.length; idx++)
     {
+        const face = faceList[idx];
         const v1 = vertexList[face.vertices[0]];
         const v2 = vertexList[face.vertices[1]];
         const v3 = vertexList[face.vertices[2]];
         const v4 = vertexList[face.vertices[3]];
         if (!isFaceVisible(v1, v2, v3, v4)) continue;
         if (pointInFace([x, y], v1, v2, v3, v4))
-            return face;
+            return idx;
     }
     return null;
- }
+}
+
+function undo()
+{
+    if (undoIdx)
+    {
+        undoIdx -= 1;
+        faceList = undoList[undoIdx];
+        redraw = true;
+    }
+}
+
+function redo()
+{
+    if (undoIdx + 1 < undoList.length)
+    {
+        undoIdx += 1;
+        faceList = undoList[undoIdx];
+        redraw = true;
+    }
+}
 
 main();
 
@@ -351,6 +388,8 @@ function main()
         else if (e.key === 'q') animateRotation('z', rotateBy);
         else if (e.key === 'e') animateRotation('z', -rotateBy);
         else if (e.key === ' ') toggleState();
+        else if (e.key === 'z') undo();
+        else if (e.key === 'x') redo();
         else if (e.key === 'r') resetRotation();
         else if (/^[1-9]$/.test(e.key)) setNumber(e.key);
         else if (e.key === '0') setNumber(null);
@@ -482,7 +521,8 @@ function renderLock(face)
         
         const glyphScale = 0.2;
 
-        for (const [[x1, y1], [x2, y2]] of glyph) {
+        for (const [[x1, y1], [x2, y2]] of glyph)
+        {
             const p1 = vec3.scaleAndAdd([], corner, xdir, x1 * glyphScale);
             vec3.scaleAndAdd(p1, p1, ydir, y1 * glyphScale);
             const p2 = vec3.scaleAndAdd([], corner, xdir, x2 * glyphScale);
@@ -538,7 +578,7 @@ function drawScene()
         ctx.save();
         ctx.translate(halfWidth, halfHeight);
     
-        if (selectedFace == face)
+        if (selectedFace !== null && faceList[selectedFace] == face)
         {
             ctx.lineWidth = 8.0;
             ctx.strokeStyle = selectedColor;

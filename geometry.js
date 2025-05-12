@@ -1,5 +1,12 @@
 ﻿// geometry.js
 //
+const edgeMap = new Map();
+const edgeList = [ ];
+let faceList = [ ];
+let undoIdx = 0;
+let undoList = [ ];
+undoList[undoIdx] = faceList;
+
 const sqrt5 = Math.sqrt(5);
 const φ = (1 + sqrt5) / 2;
 
@@ -43,10 +50,6 @@ const faceIndexList = [
   [ 41,  1,  5, 45 ], [ 41, 45, 21, 17 ], [ 42,  2,  6, 46 ], [ 42, 46, 22, 18 ],
   [ 43, 19, 23, 47 ], [ 43, 47,  7,  3 ]
 ];
-
-const edgeMap = new Map();
-const edgeList = [ ];
-const faceList = [ ];
 
 function getEdgeKey(a, b)
 {

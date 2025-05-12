@@ -19,7 +19,7 @@
 <div class="container" style="display: flex; height: 100%;">
 <canvas id="canvas" width=1024 height=768 style="width: 60%"></canvas>
 <div style="flex-grow: 1; background: gray;">
-<div id="controls">Polykobe<div>
+<div id="controls">Polykobe</div>
 <br>
 
 <div id="section1">
@@ -50,6 +50,8 @@
     <br>
     
 <div id="section1">
+    <button onclick="undo()">UNDO (z)</button>
+    <button onclick="redo()">REDO (x)</button>
     <label>zoom: </label>
     <input type="range" min=-4 max=0.1 value=-0.58 step=0.01 class="slider"
     oninput="(function() { zoom = parseFloat(value); redraw = true; })()">
