@@ -71,6 +71,13 @@ function loadPuzzle(puzzle)
     redraw = true;
 }
 
+function showSolution()
+{
+    for (const f of faceList)
+        f.state = f.solution;
+    redraw = true;
+}
+
 function setSolution()
 {
     for (const f of faceList)
