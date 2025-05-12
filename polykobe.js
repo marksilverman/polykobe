@@ -3,10 +3,9 @@
 const rotateBy = Math.PI / 6;
 const edgeColor = "orange";
 const selectedColor = "purple"
-const defaultColor = "gray";
 const glyphColor = "orange";
 const stateList = [ "unknown", "shaded", "unshaded" ];
-const stateColorList = { unknown: "white", shaded: "black", unshaded: "green" };
+const stateColorList = { unknown: "lightgray", shaded: "black", unshaded: "green" };
 const unknownState = 0, shadedState = 1, unshadedState = 2;
 
 let canvas = document.querySelector('#canvas');
@@ -75,7 +74,12 @@ function loadPuzzle(puzzle)
 function setSolution()
 {
     for (const f of faceList)
+    {
         f.solution = f.state;
+        if (f.number !== null)
+            f.locked = true;
+    }
+    redraw = true;
 }
 
 function loadState(fileList)
@@ -117,10 +121,48 @@ function toggleState()
         selectedFace.state = (selectedFace.state + 1) % stateList.length;
     redraw = true;
 }
+
+function defeat()
+{
+    const start = performance.now();
+    const duration = 400;
+    const colorInterval = 50;
+    let lastColorChange = 0;
+
+    function animate(now)
+    {
+        const elapsed = now - start;
+        if (elapsed > duration)
+        {
+            for (const face of faceList)
+                delete face._tempColor;
+            redraw = true;
+            return;
+        }
+
+        if (now - lastColorChange > colorInterval)
+        {
+            for (const face of faceList)
+            {
+                if (face._tempColor === "red")
+                    face._tempColor = "black";
+                else
+                    face._tempColor = "red";
+            }
+            lastColorChange = now;
+        }    
+
+        redraw = true;
+        requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+}
+
 function victory()
 {
     const start = performance.now();
-    const duration = 3000;
+    const duration = 2000;
     const colorInterval = 100;
     const colors = ["red", "lime", "yellow", "cyan", "magenta", "orange"];
     let lastColorChange = 0;
@@ -164,6 +206,8 @@ function checkSolution()
     
     if (solved)
         victory();
+    else
+        defeat();
     redraw = true;
 
 }
@@ -206,16 +250,11 @@ function unlockFaces()
     redraw = true;
 }
 
-function unlock()
+function toggleLock()
 {
     if (selectedFace)
-        selectedFace.locked = false;
-}
-
-function lock()
-{
-    if (selectedFace)
-        selectedFace.locked = true;
+        selectedFace.locked = !selectedFace.locked;
+    redraw = true;
 }
 
 function setNumber(n)
@@ -244,7 +283,7 @@ function animateRotation(axis, angle, steps = 20)
     step();
 }
 
-function getTransformedVertices()
+function getProjectionAndModelView()
 {
     const projectionMatrix = mat4.create();
     const modelViewMatrix = mat4.create();
@@ -253,6 +292,13 @@ function getTransformedVertices()
     mat4.translate(modelViewMatrix, modelViewMatrix, [ 0, 0, -5 ]);
     mat4.scale(modelViewMatrix, modelViewMatrix, [ zoom, zoom, zoom ]);
     mat4.multiply(modelViewMatrix, modelViewMatrix, rotationMatrix);
+
+    return { projectionMatrix, modelViewMatrix };
+}
+
+function getTransformedVertices()
+{
+    const { projectionMatrix, modelViewMatrix } = getProjectionAndModelView();
 
     let result = [ ];
     for (const v of defaultVertexList)
@@ -301,8 +347,7 @@ function main()
         else if (e.key === 'r') resetRotation();
         else if (/^[1-9]$/.test(e.key)) setNumber(e.key);
         else if (e.key === '0') setNumber(null);
-        else if (e.key === 'u') unlock();
-        else if (e.key === 'l') lock();
+        else if (e.key === 'l') toggleLock();
         redraw = true;
     });
     
@@ -409,6 +454,56 @@ function isFaceVisible(v0, v1, v2, v3)
     return avg[2] < 0;
 }
 
+function renderLock(face)
+{
+    if (face.locked)
+    {
+        const glyph = glyphList["lock"];
+        const { projectionMatrix, modelViewMatrix } = getProjectionAndModelView();
+
+        const v0 = defaultVertexList[face.vertices[0]];
+        const v1 = defaultVertexList[face.vertices[1]];
+        const v2 = defaultVertexList[face.vertices[2]];
+        const v3 = defaultVertexList[face.vertices[3]];
+
+        const xdir = vec3.normalize([], vec3.subtract([], v1, v0));
+        const normal = vec3.normalize([], vec3.cross([], vec3.subtract([], v2, v1), xdir));
+        const ydir = vec3.normalize([], vec3.cross([], xdir, normal));
+        const offset = 0.04;
+        const corner = vec3.scaleAndAdd([], v1, xdir, -offset);
+        vec3.scaleAndAdd(corner, corner, ydir, offset);
+        
+        const glyphScale = 0.2;
+
+        for (const [[x1, y1], [x2, y2]] of glyph) {
+            const p1 = vec3.scaleAndAdd([], corner, xdir, x1 * glyphScale);
+            vec3.scaleAndAdd(p1, p1, ydir, y1 * glyphScale);
+            const p2 = vec3.scaleAndAdd([], corner, xdir, x2 * glyphScale);
+            vec3.scaleAndAdd(p2, p2, ydir, y2 * glyphScale);
+
+            const v4_1 = vec4.fromValues(p1[0], p1[1], p1[2], 1);
+            const v4_2 = vec4.fromValues(p2[0], p2[1], p2[2], 1);
+
+            vec4.transformMat4(v4_1, v4_1, modelViewMatrix);
+            vec4.transformMat4(v4_1, v4_1, projectionMatrix);
+            vec4.transformMat4(v4_2, v4_2, modelViewMatrix);
+            vec4.transformMat4(v4_2, v4_2, projectionMatrix);
+
+            const sx1 = (v4_1[0] / v4_1[3]) * halfWidth;
+            const sy1 = -(v4_1[1] / v4_1[3]) * halfHeight;
+            const sx2 = (v4_2[0] / v4_2[3]) * halfWidth;
+            const sy2 = -(v4_2[1] / v4_2[3]) * halfHeight;
+
+            ctx.beginPath();
+            ctx.moveTo(sx1, sy1);
+            ctx.lineTo(sx2, sy2);
+            ctx.strokeStyle = "darkgreen";
+            ctx.lineWidth = 2.0;
+            ctx.stroke();
+        }
+    }
+}
+
 function drawScene()
 {
     if (redraw == false)
@@ -438,12 +533,12 @@ function drawScene()
     
         if (selectedFace == face)
         {
-            ctx.lineWidth = 8.0; // * (scale / 200.0);
+            ctx.lineWidth = 8.0;
             ctx.strokeStyle = selectedColor;
         }
         else
         {
-            ctx.lineWidth = 1.0; // * (scale / 200.0);
+            ctx.lineWidth = 2.0;
             ctx.strokeStyle = edgeColor;
         }
 
@@ -462,16 +557,12 @@ function drawScene()
         ctx.fill();
         ctx.stroke();
 
+        renderLock(face);
+
         const glyph = glyphList[face.number];
         if (glyph)
         {
-            const projectionMatrix = mat4.create();
-            const modelViewMatrix = mat4.create();
-
-            mat4.perspective(projectionMatrix, fov, aspect, near, far);
-            mat4.translate(modelViewMatrix, modelViewMatrix, [ 0, 0, -5 ]);
-            mat4.scale(modelViewMatrix, modelViewMatrix, [ zoom, zoom, zoom ]);
-            mat4.multiply(modelViewMatrix, modelViewMatrix, rotationMatrix);
+            const { projectionMatrix, modelViewMatrix } = getProjectionAndModelView();
         
             const glyphScale = 0.4;
         
