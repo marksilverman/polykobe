@@ -1,39 +1,38 @@
+html, body {
+    margin: 0;
+    padding: 5px;
+    height: 100%;
+    font-family: Consolas, "Courier New", monospace;
+    font-weight: bold;
+    }
 
 canvas {
+    display: block;
     border: 2px solid black;
     background-color: darkslategray;
-    width: 50%;
+    width: 100%;
     height: 100%;
     float: left;
 }
 
-body {
-    font-family: "Lucida Console", "Courier New", monospace;
-}
+.oncanvas { position: absolute; }
+.top { top: 2%; }
+.top2 { top: 6%; }
+.bottom { bottom: 4%; }
+.bottom2 { bottom: 8%; }
+.right { right: 1%; }
+.left { left: 1%; }
+.hcenter { left: 50%; transform: translateX(-50%); }
+.vcenter { top: 50%; transform: translateY(-50%); }
+.big { height:40px; }
+.orange { color: white; background-color: orange; }
+.green { color: white; background-color: green; }
+.red { color: white; background-color: rgb(134, 34, 34); }
+.yellow { color: white; background-color: rgb(101, 101, 19); }
+.white { color: black; background-color: white; }
 
-#section2 {
-    padding: 5px 5px 5px 5px;
-    background-color: darkslategray;
+    button {
+    height: 30px;
     color: white;
-}
-
-#section1 {
-    padding: 5px 5px 5px 5px;
     background-color: black;
-    color: white;
-}
-
-#controls {
-    margin: 10px 10px 10px 10px;
-}
-
-video {
-    display: none;
-}
-
-#radii {
-    background-color: lightgray;
-}
-#radius1disp, #radius2disp, #radius3disp {
-    width: 60px;
 }

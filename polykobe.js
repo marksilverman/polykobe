@@ -10,13 +10,13 @@ const unknownState = 0, shadedState = 1, unshadedState = 2;
 
 let canvas = document.querySelector('#canvas');
 const rect = canvas.getBoundingClientRect();
-const scaleX = canvas.width / rect.width;
-const scaleY = canvas.height / rect.height;
-const halfWidth = canvas.width * 0.5;
-const halfHeight = canvas.height * 0.5;
-const rectLeft = rect.left;
-const rectTop = rect.top;
-const aspect = canvas.width / canvas.height;
+let scaleX = canvas.width / rect.width;
+let scaleY = canvas.height / rect.height;
+let halfWidth = canvas.width * 0.5;
+let halfHeight = canvas.height * 0.5;
+let rectLeft = rect.left;
+let rectTop = rect.top;
+let aspect = canvas.width / canvas.height;
 const near = 0.1;
 const far = 1000;
 
@@ -374,12 +374,32 @@ function redo()
     }
 }
 
+function resetSize()
+{
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    scaleX = canvas.width / rect.width;
+    scaleY = canvas.height / rect.height;
+    halfWidth = canvas.width * 0.5;
+    halfHeight = canvas.height * 0.5;
+    rectLeft = rect.left;
+    rectTop = rect.top;
+    aspect = canvas.width / canvas.height;
+}
+
 main();
 
 function main()
 {
     if (!ctx) return alert("Your browser sucks.");
 
+    resetSize();
+
+    window.addEventListener('resize', () => {
+        resetSize();
+        redraw = true;
+    });
+    
     document.addEventListener("keydown", (e) => {
         if (e.key === 'a') animateRotation('y', -rotateBy);
         else if (e.key === 'd') animateRotation('y', rotateBy);
@@ -519,7 +539,7 @@ function renderLock(face)
         const corner = vec3.scaleAndAdd([], v1, xdir, -offset);
         vec3.scaleAndAdd(corner, corner, ydir, offset);
         
-        const glyphScale = 0.2;
+        const glyphScale = 0.1;
 
         for (const [[x1, y1], [x2, y2]] of glyph)
         {
@@ -580,12 +600,12 @@ function drawScene()
     
         if (selectedFace !== null && faceList[selectedFace] == face)
         {
-            ctx.lineWidth = 8.0;
+            ctx.lineWidth = 8;
             ctx.strokeStyle = selectedColor;
         }
         else
         {
-            ctx.lineWidth = 2.0;
+            ctx.lineWidth = 2;
             ctx.strokeStyle = edgeColor;
         }
 
@@ -611,7 +631,7 @@ function drawScene()
         {
             const { projectionMatrix, modelViewMatrix } = getProjectionAndModelView();
         
-            const glyphScale = 0.4;
+            const glyphScale = 0.3;
         
             const v0 = defaultVertexList[face.vertices[0]];
             const v1 = defaultVertexList[face.vertices[1]];
