@@ -8,7 +8,8 @@ const stateList = [ "unknown", "shaded", "unshaded" ];
 const stateColorList = { unknown: "lightgray", shaded: "black", unshaded: "green" };
 const unknownState = 0, shadedState = 1, unshadedState = 2;
 
-let fov = -0.36, zoom = -0.58, prevX = 0, prevY = 0;
+let perspective = -0.58, fovRatio= 1.8;
+let prevX = 0, prevY = 0;
 let isDragging = false, redraw = true;
 let selectedFace = null;
 
@@ -322,9 +323,9 @@ function getProjectionAndModelView()
     const projectionMatrix = mat4.create();
     const modelViewMatrix = mat4.create();
 
-    mat4.perspective(projectionMatrix, fov, aspect, near, far);
+    mat4.perspective(projectionMatrix, perspective / fovRatio, aspect, near, far);
     mat4.translate(modelViewMatrix, modelViewMatrix, [ 0, 0, -5 ]);
-    mat4.scale(modelViewMatrix, modelViewMatrix, [ zoom, zoom, zoom ]);
+    mat4.scale(modelViewMatrix, modelViewMatrix, [ perspective, perspective, perspective ]);
     mat4.multiply(modelViewMatrix, modelViewMatrix, rotationMatrix);
 
     return { projectionMatrix, modelViewMatrix };

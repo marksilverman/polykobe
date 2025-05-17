@@ -16,13 +16,15 @@ canvas {
 }
 
 button {
+    margin-top: 2px;
     height: 30px;
     color: white;
     background-color: black;
 }
 
-.oncanvas { position: absolute; }
+.oncanvas { position: absolute; text-align: center;}
 .top { top: 2%; }
+.top5 { top: 5%; }
 .top10 { top: 10%; }
 .bottom { bottom: 4%; }
 .bottom10 { bottom: 10%; }
@@ -40,13 +42,16 @@ button {
     text-align: center;
 }
 
-.numbers {
-}
+.numbers { }
 
 .numbers button {
+    color: blue;
+    background-color: darkorange;
+    margin-top: 4px;
     height: 40px;
     width: 40px;
 }
+
 .orange { color: white; background-color: orange; }
 .green { color: white; background-color: green; }
 .red { color: white; background-color: rgb(134, 34, 34); }
