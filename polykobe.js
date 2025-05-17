@@ -8,15 +8,30 @@ const stateList = [ "unknown", "shaded", "unshaded" ];
 const stateColorList = { unknown: "lightgray", shaded: "black", unshaded: "green" };
 const unknownState = 0, shadedState = 1, unshadedState = 2;
 
+let fov = -0.36, zoom = -0.58, prevX = 0, prevY = 0;
+let isDragging = false, redraw = true;
+let selectedFace = null;
+
+function resetSize()
+{
+    rect = canvas.getBoundingClientRect();
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    scaleX = canvas.width / rect.width;
+    scaleY = canvas.height / rect.height;
+    halfWidth = canvas.width * 0.5;
+    halfHeight = canvas.height * 0.5;
+    rectLeft = rect.left;
+    rectTop = rect.top;
+    aspect = canvas.width / canvas.height;
+    redraw = true;
+}
+
 let canvas = document.querySelector('#canvas');
-const rect = canvas.getBoundingClientRect();
-let scaleX = canvas.width / rect.width;
-let scaleY = canvas.height / rect.height;
-let halfWidth = canvas.width * 0.5;
-let halfHeight = canvas.height * 0.5;
-let rectLeft = rect.left;
-let rectTop = rect.top;
-let aspect = canvas.width / canvas.height;
+let rect = null, scaleX = null, scaleY = null, halfWidth = null, halfHeight = null;
+let rectLeft = null, rectTop = null, aspect = null;
+resetSize();
+
 const near = 0.1;
 const far = 1000;
 
@@ -29,10 +44,6 @@ let defaultRotationMatrix = mat4.fromValues(
      0.000000,  0.000000,  0.000000,  1.000000
 );
 const rotationMatrix = mat4.clone(defaultRotationMatrix);
-
-let fov = -0.36, zoom = -0.58, prevX = 0, prevY = 0;
-let isDragging = false, redraw = true;
-let selectedFace = null;
 
 function doSomething()
 {
@@ -374,19 +385,6 @@ function redo()
     }
 }
 
-function resetSize()
-{
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    scaleX = canvas.width / rect.width;
-    scaleY = canvas.height / rect.height;
-    halfWidth = canvas.width * 0.5;
-    halfHeight = canvas.height * 0.5;
-    rectLeft = rect.left;
-    rectTop = rect.top;
-    aspect = canvas.width / canvas.height;
-}
-
 main();
 
 function main()
@@ -395,10 +393,7 @@ function main()
 
     resetSize();
 
-    window.addEventListener('resize', () => {
-        resetSize();
-        redraw = true;
-    });
+    window.addEventListener('resize', resetSize);
     
     document.addEventListener("keydown", (e) => {
         if (e.key === 'a') animateRotation('y', -rotateBy);
@@ -414,6 +409,7 @@ function main()
         else if (/^[1-9]$/.test(e.key)) setNumber(e.key);
         else if (e.key === '0') setNumber(null);
         else if (e.key === 'l') toggleLock();
+        else if (e.key === 'f') resetSize();        
         redraw = true;
     });
     

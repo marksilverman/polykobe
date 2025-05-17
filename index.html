@@ -28,13 +28,13 @@
 <div class="container" style="display: flex;">
 <canvas id="canvas"></canvas>
 
-<div class="top right oncanvas">
-    <button class="red" onclick="loadPuzzle(puzzle1)">LOAD PUZZLE #1</button>
-    <button class="red" onclick="loadPuzzle(puzzle2)">LOAD PUZZLE #2</button>
-    <button class="red" onclick="loadPuzzle(puzzle3)">LOAD PUZZLE #3</button>
+<div class="top10 right oncanvas">
+    <button class="red" onclick="loadPuzzle(puzzle1)">LOAD PUZZLE #1</button><br><br>
+    <button class="red" onclick="loadPuzzle(puzzle2)">LOAD PUZZLE #2</button><br><br>
+    <button class="red" onclick="loadPuzzle(puzzle3)">LOAD PUZZLE #3</button><br><br>
 </div>
 
-<div class="top2 right oncanvas">
+<div class="top right oncanvas">
     <input onchange="loadState(this.files)" type="file" id="fileInput" accept=".json,application/json" style="display:none">
     <button onclick="saveState()">SAVE FILE</button>
     <button onclick="document.getElementById('fileInput').click()">LOAD FILE</button>
@@ -43,6 +43,10 @@
 <div class="top left oncanvas">
     <button class="big orange" onclick="undo()">UNDO (z)</button>
     <button class="big orange" onclick="redo()">REDO (x)</button>
+    <button class="big purple" onclick="resetSize()">FIX MOUSE (f)</button>
+</div>
+
+<div class="top10 left oncanvas">
     <button class="big green" onclick="checkSolution()">CHECK SOLUTION</button>
     <button class="big blue" onclick="document.getElementById('popup').style.display = 'block'">RULES</button>
 </div>
@@ -54,7 +58,7 @@
     <ul>
     <li>color all cells either black (shaded) or green (unshaded)</li>
     <li>shaded cells must form a single region connected by edges</li>
-    <li>you cannot fully shade a 2x2 block</li>
+    <li>you cannot shade all the faces around a vertex</li>
     <li>all unshaded squares must be part of a region that includes a number</li>
     <li>numbers indicates the number of cells in that region</li>
     <li>regions cannot contain multiple cells with numbers</li>
@@ -62,6 +66,7 @@
     <li>two different unshaded regions cannot share an edge, but they can share a vertex (corner)</li>
     </ul>
     Rotate by dragging mouse or use buttons below (shortcuts on buttons). Right click to toggle shaded/unshaded/unknown or select cell and click button. Use buttons to load sample puzzles. Click CHECK SOLUTION and puzzle will flash when correct.
+    <br><br>If mouseclicks becomes misaligned after resizing screen, click FIX MOUSE (or type 'f').
     <br><br>Setting puzzles is probably a little confusing. Message #grimception on discord with questions.</p>
   <button onclick="document.getElementById('popup').style.display = 'none'">Close</button>
 </div>
@@ -73,46 +78,51 @@
     <button class="yellow" onclick="resetRotation()">Reset Rotation (r)</button>
 </div>
 
-<div class="top2 hcenter oncanvas">
-    <label>zoom: </label>
+<div class="top10 hcenter oncanvas">
+    <span style="color:white">zoom: </span>
     <input type="range" min=-4 max=0.1 value=-0.58 step=0.01 class="slider"
         oninput="(function() { zoom = parseFloat(value); redraw = true; })()">
-    <label>fov:</label>
+    <span style="color:white">fov:</span>
     <input type="range" min=-2.0 max=-0.01 value=-0.36 step=0.01 class="slider"
         oninput="(function() { fov = parseFloat(value); redraw = true; })();">
 </div>
 
 <div class="vcenter left oncanvas">
-    <button onclick="setNumber(1)">1</button>
-    <button onclick="setNumber(2)">2</button>
-    <button onclick="setNumber(3)">3</button>
+<div class="white numbers buttonholder">
+    <button class="big" onclick="setNumber(1)">1</button>&nbsp;
+    <button onclick="setNumber(2)">2</button>&nbsp;
+    <button onclick="setNumber(3)">3</button>&nbsp;
     <br><br>
-    <button onclick="setNumber(4)">4</button>
-    <button onclick="setNumber(5)">5</button>
-    <button onclick="setNumber(6)">6</button>
+    <button onclick="setNumber(4)">4</button>&nbsp;
+    <button onclick="setNumber(5)">5</button>&nbsp;
+    <button onclick="setNumber(6)">6</button>&nbsp;
     <br><br>
-    <button onclick="setNumber(7)">7</button>
-    <button onclick="setNumber(8)">8</button>
-    <button onclick="setNumber(9)">9</button>
+    <button onclick="setNumber(7)">7</button>&nbsp;
+    <button onclick="setNumber(8)">8</button>&nbsp;
+    <button onclick="setNumber(9)">9</button>&nbsp;
     <br><br>
-    <button onclick="setNumber(undefined)"> REMOVE NUMBER (0) </button>
-    <button onclick="toggleLock()"> TOGGLE LOCK (l) </button>
+    <button onclick="setNumber(undefined)"> CLR </button>
+</div>
+<br>
+<div class="buttonholder">
+    <button onclick="toggleLock()">LOCK/UNLOCK (l)</button>
     <br><br>
-    <button onclick="toggleState()">Toggle Shading (spacebar)</button>
+    <button onclick="toggleState()">SHADE/UNSHADE (space)</button>
+</div>
 </div>
 
-<div class="bottom left oncanvas">
-    <button class="white" onclick="clearFaces()">reset puzzle</button>
-    <button class="white" onclick="unlockFaces()">unlock all cells</button>
-    <button class="white" onclick="setSolution()">set as solution</button>
-    <button class="white" onclick="showSolution()">show solution</button>
+<div class="bottom left oncanvas buttonholder">
+    <button class="blue" onclick="clearFaces()">reset puzzle</button>
+    <button class="blue" onclick="unlockFaces()">unlock all cells</button>
+    <button class="blue" onclick="setSolution()">set as solution</button>
+    <button class="blue" onclick="showSolution()">show solution</button>
 </div>
 
-<div class="bottom right oncanvas">
-    <label>type:</label><input type="text" readonly style="width:180px" id="polyhedronName">
-    <label>faces:</label><input type="text" style="width:30px;" readonly id="numberOfFaces">
-    <label>edges:</label><input type="text" style="width:30px;" readonly id="numberOfEdges">
-    <label>vertices:</label><input type="text" style="width:30px;" readonly id="numberOfVertices">
+<div class="bottom right oncanvas buttonholder">
+    <span>type:</span><input class="purple" type="text" readonly style="width:200px" id="polyhedronName">
+    <span>faces:</span><input class="purple" type="text" style="width:30px;" readonly id="numberOfFaces">
+    <span>edges:</span><input class="purple" type="text" style="width:30px;" readonly id="numberOfEdges">
+    <span>vertices:</span><input class="purple" type="text" style="width:30px;" readonly id="numberOfVertices">
 </div>
 
 </body>
