@@ -8,7 +8,7 @@ const stateList = [ "unknown", "shaded", "unshaded" ];
 const stateColorList = { unknown: "lightgray", shaded: "black", unshaded: "green" };
 const unknownState = 0, shadedState = 1, unshadedState = 2;
 
-let perspective = -0.58, fovRatio= 1.8;
+let perspective = -0.58, fovRatio= 0.8;
 let prevX = 0, prevY = 0;
 let isDragging = false, redraw = true;
 let selectedFace = null;
@@ -295,7 +295,10 @@ function setNumber(n)
 {
     doSomething();
     if (selectedFace !== null && !faceList[selectedFace].locked)
+    {
         faceList[selectedFace].number = parseInt(n);
+        faceList[selectedFace].solution = null;
+    }
     redraw = true;
 }
 

@@ -74,7 +74,7 @@
     <button class="yellow" onclick="resetRotation()">Reset Rotation (r)</button>
     <br>
     <span style="color:white">perspective: </span>
-    <input id="perspective" type="range" min=-4.8 max=1.0 value=-0.58 step=0.01 class="slider"
+    <input id="perspective" type="range" min=-1.9 max=1.0 value=-0.58 step=0.01 class="slider"
         oninput="(function() {
             perspective = parseFloat(value);
             resetSize();
@@ -95,6 +95,10 @@
     <button onclick="setNumber(7)">7</button>
     <button onclick="setNumber(8)">8</button>
     <button onclick="setNumber(9)">9</button>
+    <br>
+    <button onclick="setNumber(10)">10</button>
+    <button onclick="setNumber(11)">11</button>
+    <button onclick="setNumber(12)">12</button>
     <br>
     <button onclick="setNumber(undefined)"> CLR </button>
 </div>
