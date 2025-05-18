@@ -229,16 +229,22 @@ function victory()
 
 function checkSolution()
 {
+    let winner = true;
     redraw = true;
     for (var face of faceList)
     {
-        if (face.state !== face.solution)
+        // unshaded is equal to unknown for this purpose
+        if (face.solution != unknownState && face.state != face.solution)
         {
-            defeat();
-            return;
+            winner = false;
+            if (face.solution == shadedState)
+                face._tempColor = "darkred";
+            else if (face.solution == unshadedState)
+                face._tempColor = "pink";
         }
-    }    
-    victory();
+    }
+    if (winner)
+        victory();
 }
 
 function clearMost()
@@ -617,7 +623,10 @@ function drawScene()
 
         ctx.closePath();
         if (face._tempColor)
+        {
             ctx.fillStyle = face._tempColor;
+            face._tempColor = null;
+        }
         else
             ctx.fillStyle = stateColorList[stateList[face.state]];
         
