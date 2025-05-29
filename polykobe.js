@@ -406,15 +406,15 @@ function main()
     window.addEventListener('resize', resetSize);
     
     document.addEventListener("keydown", (e) => {
-        if (e.key === 'a') animateRotation('y', -rotateBy);
+        if (e.key === 'z') undo();
+        else if (e.key === 'x' || e.key === 'y') redo();
+        else if (e.key === 'a') animateRotation('y', -rotateBy);
         else if (e.key === 'd') animateRotation('y', rotateBy);
         else if (e.key === 'w') animateRotation('x', -rotateBy);
         else if (e.key === 's') animateRotation('x', rotateBy);
         else if (e.key === 'q') animateRotation('z', rotateBy);
         else if (e.key === 'e') animateRotation('z', -rotateBy);
         else if (e.key === ' ') toggleState();
-        else if (e.key === 'z') undo();
-        else if (e.key === 'x') redo();
         else if (e.key === 'r') resetRotation();
         else if (/^[1-9]$/.test(e.key)) setNumber(e.key);
         else if (e.key === '0') setNumber(null);
