@@ -160,9 +160,10 @@ function toggleState()
 function defeat()
 {
     const start = performance.now();
-    const duration = 400;
-    const colorInterval = 50;
+    const duration = 1000;
+    const colorInterval = 200;
     let lastColorChange = 0;
+    let red = true;
 
     function animate(now)
     {
@@ -179,11 +180,12 @@ function defeat()
         {
             for (const face of faceList)
             {
-                if (face._tempColor === "red")
-                    face._tempColor = "black";
-                else
+                if (red)
                     face._tempColor = "red";
+                else
+                    face._tempColor = "black";
             }
+            red = !red;
             lastColorChange = now;
         }    
 
@@ -237,10 +239,11 @@ function checkSolution()
         if (face.solution != unknownState && face.state != face.solution)
         {
             winner = false;
-            if (face.solution == shadedState)
-                face._tempColor = "darkred";
-            else if (face.solution == unshadedState)
-                face._tempColor = "pink";
+            defeat();
+//            if (face.solution == shadedState)
+//                face._tempColor = "darkred";
+//            else if (face.solution == unshadedState)
+//                face._tempColor = "pink";
         }
     }
     if (winner)
@@ -623,10 +626,7 @@ function drawScene()
 
         ctx.closePath();
         if (face._tempColor)
-        {
             ctx.fillStyle = face._tempColor;
-            face._tempColor = null;
-        }
         else
             ctx.fillStyle = stateColorList[stateList[face.state]];
         

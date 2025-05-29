@@ -35,7 +35,6 @@
 <br>
     <button class="red" onclick="loadPuzzle(puzzle1)">LOAD PUZZLE #1</button><br>
     <button class="red" onclick="loadPuzzle(puzzle2)">LOAD PUZZLE #2</button><br>
-    <button class="red" onclick="loadPuzzle(puzzle3)">LOAD PUZZLE #3</button><br>
 </div>
 
 <div class="top left oncanvas">
@@ -54,14 +53,14 @@
     <ul>
     <li>color all cells either black (shaded) or green (unshaded)</li>
     <li>shaded cells must form a single region connected by edges</li>
-    <li>you cannot shade all the faces around a vertex</li>
+    <li><mark>you cannot shade all the faces around a vertex</mark></li>
     <li>all unshaded squares must be part of a region that includes a number</li>
     <li>numbers indicates the number of cells in that region</li>
     <li>regions cannot contain multiple cells with numbers</li>
     <li>regions are formed by cells that share an edge</li>
     <li>two different unshaded regions cannot share an edge, but they can share a vertex (corner)</li>
     </ul>
-    Rotate by dragging mouse or use buttons below (shortcuts on buttons). Right click to toggle shaded/unshaded/unknown or select cell and click button. Use buttons to load sample puzzles. Click CHECK SOLUTION and puzzle will flash when correct.
+    Rotate by dragging mouse, clicking buttons, or keyboard shortcuts (which are specified on the buttons). Right click to toggle shaded/unshaded/unknown or select cell and click button or hit the spacebar. There are two sample puzzles (use buttons). Click CHECK SOLUTION and puzzle will flash when correct.
     <br><br>If mouseclicks becomes misaligned after resizing screen, click FIX MOUSE (or type 'f').
     <br><br>Setting puzzles is probably a little confusing. Message #grimception on discord with questions.</p>
   <button onclick="document.getElementById('popup').style.display = 'none'">Close</button>
