@@ -25,18 +25,36 @@
 
 <body>
 
-<div class="container" style="display: flex; height: 100%;">
-<canvas id="canvas" width=1024 height=768 style="width: 60%"></canvas>
-<div style="flex-grow: 1; background: gray;">
-<div id="controls">Polykobe</div>
-<br>
+<div class="container" style="display: flex;">
+<canvas id="canvas"></canvas>
 
-<div id="section1">
-    Standard <a href=https://en.wikipedia.org/wiki/Nurikabe_(puzzle)>Nurikabe</a> rules apply (more or less):
+<div class="top right oncanvas">
+    <input onchange="loadState(this.files)" type="file" id="fileInput" accept=".json,application/json" style="display:none">
+    <button onclick="saveState()">SAVE FILE</button>
+    <button onclick="document.getElementById('fileInput').click()">LOAD FILE</button>
+<br>
+    <button class="red" onclick="loadPuzzle(puzzle1)">LOAD PUZZLE #1</button><br>
+    <button class="red" onclick="loadPuzzle(puzzle2)">LOAD PUZZLE #2</button><br>
+    <button class="red" onclick="loadPuzzle(puzzle3)">LOAD PUZZLE #3</button><br>
+</div>
+
+<div class="top left oncanvas">
+    <button class="big orange" onclick="undo()">UNDO (z)</button>
+    <button class="big orange" onclick="redo()">REDO (x)</button>
+    <button class="big purple" onclick="resetSize()">FIX MOUSE (f)</button>
+<br>
+    <button class="big green" onclick="checkSolution()">CHECK SOLUTION</button>
+    <button class="big blue" onclick="document.getElementById('popup').style.display = 'block'">RULES</button>
+</div>
+
+<div id="popup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+ background:white; border:1px solid black; padding:20px; z-index:1000">
+  <p>RULES</p>
+  <p>Standard <a href=https://en.wikipedia.org/wiki/Nurikabe_(puzzle)>Nurikabe</a> rules apply (more or less):
     <ul>
     <li>color all cells either black (shaded) or green (unshaded)</li>
     <li>shaded cells must form a single region connected by edges</li>
-    <li>you cannot fully shade a 2x2 block</li>
+    <li>you cannot shade all the faces around a vertex</li>
     <li>all unshaded squares must be part of a region that includes a number</li>
     <li>numbers indicates the number of cells in that region</li>
     <li>regions cannot contain multiple cells with numbers</li>
@@ -44,80 +62,68 @@
     <li>two different unshaded regions cannot share an edge, but they can share a vertex (corner)</li>
     </ul>
     Rotate by dragging mouse or use buttons below (shortcuts on buttons). Right click to toggle shaded/unshaded/unknown or select cell and click button. Use buttons to load sample puzzles. Click CHECK SOLUTION and puzzle will flash when correct.
-    <br><br>Setting puzzles is probably a little confusing. Message #grimception on discord with questions.
+    <br><br>If mouseclicks becomes misaligned after resizing screen, click FIX MOUSE (or type 'f').
+    <br><br>Setting puzzles is probably a little confusing. Message #grimception on discord with questions.</p>
+  <button onclick="document.getElementById('popup').style.display = 'none'">Close</button>
 </div>
-<br>
 
-<div id="section1">
-    <button onclick="loadPuzzle(puzzle1)">LOAD PUZZLE #1</button>
-    <button onclick="loadPuzzle(puzzle2)">LOAD PUZZLE #2</button>
-    <button onclick="loadPuzzle(puzzle3)">LOAD PUZZLE #3</button> (puzzle #3 is the hardest)<br><br>
-    <button style="height:40px; color: white; background-color:green" onclick="checkSolution()">CHECK SOLUTION</button>
-    <button onclick="document.getElementById('fileInput').click()">LOAD FILE</button>
-    <input onchange="loadState(this.files)" type="file" id="fileInput" accept=".json,application/json" style="display:none">
-    <button onclick="saveState()">SAVE FILE</button>
-    </div>
+<div class="top hcenter oncanvas">
+    <button class="yellow" onclick="animateRotation('x', rotateBy);">Rotate X (w/s)</button>
+    <button class="yellow" onclick="animateRotation('y', rotateBy);">Rotate Y (a/d)</button>
+    <button class="yellow" onclick="animateRotation('z', rotateBy);">Rotate Z (q/e)</button>
+    <button class="yellow" onclick="resetRotation()">Reset Rotation (r)</button>
     <br>
-    
-<div id="section1">
-    <button onclick="undo()">UNDO (z)</button>
-    <button onclick="redo()">REDO (x)</button>
-    <label>zoom: </label>
-    <input type="range" min=-4 max=0.1 value=-0.58 step=0.01 class="slider"
-    oninput="(function() { zoom = parseFloat(value); redraw = true; })()">
-    <label>fov:</label>
-    <input type="range" min=-2.0 max=-0.01 value=-0.36 step=0.01 class="slider"
-    oninput="(function() { fov = parseFloat(value); redraw = true; })();">
+    <span style="color:white">perspective: </span>
+    <input id="perspective" type="range" min=-1.9 max=1.0 value=-0.58 step=0.01 class="slider"
+        oninput="(function() {
+            perspective = parseFloat(value);
+            resetSize();
+            redraw = true;
+           })()">
+</div>
+
+<div class="vcenter left oncanvas">
+<div class="white numbers buttonholder">
+    <button onclick="setNumber(1)">1</button>
+    <button onclick="setNumber(2)">2</button>
+    <button onclick="setNumber(3)">3</button>
+    <br>
+    <button onclick="setNumber(4)">4</button>
+    <button onclick="setNumber(5)">5</button>
+    <button onclick="setNumber(6)">6</button>
+    <br>
+    <button onclick="setNumber(7)">7</button>
+    <button onclick="setNumber(8)">8</button>
+    <button onclick="setNumber(9)">9</button>
+    <br>
+    <button onclick="setNumber(10)">10</button>
+    <button onclick="setNumber(11)">11</button>
+    <button onclick="setNumber(12)">12</button>
+    <br>
+    <button onclick="setNumber(undefined)"> CLR </button>
 </div>
 <br>
-
-<div id="section1">
-    <button onclick="animateRotation('x', rotateBy);">Rotate X (w/s)</button>
-    <button onclick="animateRotation('y', rotateBy);">Rotate Y (a/d)</button>
-    <button onclick="animateRotation('z', rotateBy);">Rotate Z (q/e)</button>
-    <button onclick="resetRotation()">Reset Rotation (r)</button>
-    <br><br>
-    <button onclick="clearFaces()">reset puzzle</button>
-    <button onclick="unlockFaces()">unlock all cells</button>
-    <button onclick="setSolution()">set as solution</button>
-    <button onclick="showSolution()">show solution</button>
-</div>
+<div class="buttonholder">
+    <button onclick="toggleLock()">LOCK/UNLOCK (l)</button>
 <br>
-
-<div id="section1">
-<button onclick="setNumber(1)">1</button>
-<button onclick="setNumber(2)">2</button>
-<button onclick="setNumber(3)">3</button>
-<br><br>
-<button onclick="setNumber(4)">4</button>
-<button onclick="setNumber(5)">5</button>
-<button onclick="setNumber(6)">6</button>
-<br><br>
-<button onclick="setNumber(7)">7</button>
-<button onclick="setNumber(8)">8</button>
-<button onclick="setNumber(9)">9</button>
-<br><br>
-<button onclick="setNumber(undefined)"> REMOVE NUMBER (0) </button>
-<button onclick="toggleLock()"> TOGGLE LOCK (l) </button>
-<br><br>
-<button onclick="toggleState()">Toggle Shading (spacebar)</button>
+    <button onclick="toggleState()">SHADE/UNSHADE (space)</button>
+</div>
 </div>
 
-<br>
-<div id="section1">
-    <label>type:</label><input type="text" readonly style="width:180px" id="polyhedronName">
-    <label>faces:</label><input type="text" style="width:30px;" readonly id="numberOfFaces">
-    <label>edges:</label><input type="text" style="width:30px;" readonly id="numberOfEdges">
-    <label>vertices:</label><input type="text" style="width:30px;" readonly id="numberOfVertices">
+<div class="bottom left oncanvas buttonholder">
+    <button class="blue" onclick="clearFaces()">reset puzzle</button>
+    <button class="blue" onclick="unlockFaces()">unlock all cells</button>
+    <button class="blue" onclick="setSolution()">set as solution</button>
+    <button class="blue" onclick="showSolution()">show solution</button>
 </div>
 
+<div class="bottom right oncanvas buttonholder">
+    <span>type:</span><input class="purple" type="text" readonly style="width:200px" id="polyhedronName">
+    <span>faces:</span><input class="purple" type="text" style="width:30px;" readonly id="numberOfFaces">
+    <span>edges:</span><input class="purple" type="text" style="width:30px;" readonly id="numberOfEdges">
+    <span>vertices:</span><input class="purple" type="text" style="width:30px;" readonly id="numberOfVertices">
 </div>
-</div>
-</div>
-</div>
-</div>
+
 </body>
-<br>
-<span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/InteractiveResource" property="dct:title" rel="dct:type">Polykobe</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://github.com/marksilverman/polykobe" property="cc:attributionName" rel="cc:attributionURL">Mark Silverman</a>. This code is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>. 
-<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a>
+
 </html>

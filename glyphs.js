@@ -115,3 +115,9 @@ glyphList["lock"] = [
     [[0.035, 0.295], [0.05, 0.27]],
     [[0.05, 0.27], [0.05, 0.2]]
 ];
+
+glyphList[10] = [...glyphList[1], ...glyphList[0].map(segment => segment.map(([x, y]) => [x + 0.3, y]))];
+glyphList[11] = glyphList[1].map(segment => segment.map(([x, y]) => [x, y]))
+  .concat(glyphList[1].map(segment => segment.map(([x, y]) => [x + 0.3, y])));
+glyphList[12] = [...glyphList[1], ...glyphList[2].map(segment => segment.map(([x, y]) => [x + 0.3, y]))];
+glyphList[13] = [...glyphList[1], ...glyphList[3].map(segment => segment.map(([x, y]) => [x + 0.3, y]))];
