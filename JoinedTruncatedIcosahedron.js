@@ -1,13 +1,13 @@
 ﻿// geometry.js
 //
-const edgeMap = new Map();
-const edgeList = [];
-let faceList = [];
-let undoIdx = 0;
-let undoList = [];
-undoList[undoIdx] = faceList;
+window.JoinedTruncatedIcosahedron = (function() {
 
-const polyhedronName = "Joined Truncated Icosahedron";
+let joined_truncated_icosahedron = { };
+joined_truncated_icosahedron["sizeFactor"] = -5;
+
+// undoList[undoIdx] = faceList;
+
+joined_truncated_icosahedron["polyhedronName"] = "Joined Truncated Icosahedron";
 
 const C0 = 0.8090169943749474;
 const C1 = 0.9270509831248423;
@@ -18,7 +18,7 @@ const C5 = 2.118033988749895;
 const C6 = 2.152934986677507;
 const C7 = 2.4270509831248423;
 
-const defaultVertexList = [
+joined_truncated_icosahedron["defaultVertexList"] = [
   [0.0, C1, C7], [0.0, C1, -C7], [0.0, -C1, C7], [0.0, -C1, -C7],
   [C7, 0.0, C1], [C7, 0.0, -C1], [-C7, 0.0, C1], [-C7, 0.0, -C1],
   [C1, C7, 0.0], [C1, -C7, 0.0], [-C1, C7, 0.0], [-C1, -C7, 0.0],
@@ -44,7 +44,7 @@ const defaultVertexList = [
   [-1.5, 1.5, 1.5], [-1.5, 1.5, -1.5], [-1.5, -1.5, 1.5], [-1.5, -1.5, -1.5]
 ];
 
-const faceIndexList = [
+joined_truncated_icosahedron["faceIndexList"] = [
   [24,12,2,38],[24,38,86,70],[24,70,4,68],[24,68,84,36],[24,36,0,12],
   [25,13,1,37],[25,37,85,69],[25,69,5,71],[25,71,87,39],[25,39,3,13],
   [26,14,0,40],[26,40,88,72],[26,72,6,74],[26,74,90,42],[26,42,2,14],
@@ -64,31 +64,39 @@ const faceIndexList = [
   [54,9,78,86],[55,87,79,9],[56,10,80,88],[57,89,81,10],[58,90,82,11],[59,11,83,91]
 ];
 
-function getEdgeKey(a, b) {
+joined_truncated_icosahedron["edgeMap"] = new Map();
+joined_truncated_icosahedron["edgeList"] = [ ];
+joined_truncated_icosahedron["faceList"] = [ ];
+
+function getEdgeKey(a, b)
+{
   return a < b ? `${a},${b}` : `${b},${a}`;
 }
 
-function getEdgeIndex(a, b, faceIndex) {
+function getEdgeIndex(a, b, faceIndex)
+{
   const key = getEdgeKey(a, b);
-  if (edgeMap.has(key)) {
-    const entry = edgeMap.get(key);
+  if (joined_truncated_icosahedron["edgeMap"].has(key))
+  {
+    const entry = joined_truncated_icosahedron["edgeMap"].get(key);
     entry.faces.push(faceIndex);
     return entry.index;
   }
-  const index = edgeList.length;
-  const entry = { vertices: [a, b], faces: [faceIndex] };
-  edgeMap.set(key, { index, faces: entry.faces });
-  edgeList.push(entry);
+  const index = joined_truncated_icosahedron["edgeList"].length;
+  const entry = { vertices: [ a, b ], faces: [ faceIndex ] };
+  joined_truncated_icosahedron["edgeMap"].set( key, { index, faces: entry.faces } );
+  joined_truncated_icosahedron["edgeList"].push( entry );
   return index;
 }
 
-for (let i = 0; i < faceIndexList.length; i++) {
-  const [a, b, c, d] = faceIndexList[i];
+for (let i = 0; i < joined_truncated_icosahedron["faceIndexList"].length; i++)
+{
+  const [a, b, c, d] = joined_truncated_icosahedron["faceIndexList"][i];
   const e0 = getEdgeIndex(a, b, i);
   const e1 = getEdgeIndex(b, c, i);
   const e2 = getEdgeIndex(c, d, i);
   const e3 = getEdgeIndex(d, a, i);
-  faceList.push({
+  joined_truncated_icosahedron["faceList"].push({
     vertices: [a, b, c, d],
     edges: [e0, e1, e2, e3],
     state: 0,
@@ -96,3 +104,8 @@ for (let i = 0; i < faceIndexList.length; i++) {
     number: null
   });
 }
+
+function getGeometry() { return joined_truncated_icosahedron; }
+return { getGeometry };
+
+})();

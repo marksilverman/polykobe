@@ -1,16 +1,21 @@
-﻿// geometry.js
+﻿// GeodesicCube5.js
 //
+window.GeodesicCube5 = (function() {
+
+let geodesic_cube_5 = { };
+geodesic_cube_5["sizeFactor"] = -2;
 const sqrt5 = Math.sqrt(5);
 const φ = (1 + sqrt5) / 2;
 
-const polyhedronName = "Geodesic Cube Pattern 5 [3,0]";
+geodesic_cube_5["polyhedronName"] = "Geodesic Cube Pattern 5 [3,0]";
+
 const C0 = 0.248980242746681704081913867273;
 const C1 = 0.263843526998053964813863576171;
 const C2 = 0.582070743941977044408971034040;
 const C3 = 0.7071067811865475244008443621048;
 const C4 = 0.964565494542090266957282957994;
 
-const defaultVertexList = [
+geodesic_cube_5["defaultVertexList"] = [
   [ C1,  C1,  C4], [ C1,  C1, -C4], [ C1, -C1,  C4], [ C1, -C1, -C4],
   [-C1,  C1,  C4], [-C1,  C1, -C4], [-C1, -C1,  C4], [-C1, -C1, -C4],
   [ C4,  C1,  C1], [ C4,  C1, -C1], [ C4, -C1,  C1], [ C4, -C1, -C1],
@@ -27,7 +32,7 @@ const defaultVertexList = [
   [-C2,  C2,  C2], [-C2,  C2, -C2], [-C2, -C2,  C2], [-C2, -C2, -C2],
 ];
 
-const faceIndexList = [
+geodesic_cube_5["faceIndexList"] = [
   [  0,  4,  6,  2 ], [  1,  3,  7,  5 ], [  8, 10, 11,  9 ], [ 12, 13, 15, 14 ],
   [ 16, 17, 21, 20 ], [ 18, 22, 23, 19 ], [ 48, 24,  8, 32 ], [ 48, 32, 16, 40 ],
   [ 48, 40,  0, 24 ], [ 49, 25,  1, 41 ], [ 49, 41, 17, 33 ], [ 49, 33,  9, 25 ],
@@ -44,9 +49,9 @@ const faceIndexList = [
   [ 43, 19, 23, 47 ], [ 43, 47,  7,  3 ]
 ];
 
-const edgeMap = new Map();
-const edgeList = [ ];
-const faceList = [ ];
+geodesic_cube_5["edgeMap"] = new Map();
+geodesic_cube_5["edgeList"] = [ ];
+geodesic_cube_5["faceList"] = [ ];
 
 function getEdgeKey(a, b)
 {
@@ -56,27 +61,27 @@ function getEdgeKey(a, b)
 function getEdgeIndex(a, b, faceIndex)
 {
   const key = getEdgeKey(a, b);
-  if (edgeMap.has(key))
+  if (geodesic_cube_5["edgeMap"].has(key))
   {
-    const entry = edgeMap.get(key);
+    const entry = geodesic_cube_5["edgeMap"].get(key);
     entry.faces.push(faceIndex);
     return entry.index;
   }
-  const index = edgeList.length;
+  const index = geodesic_cube_5["edgeList"].length;
   const entry = { vertices: [ a, b ], faces: [ faceIndex ] };
-  edgeMap.set( key, { index, faces: entry.faces } );
-  edgeList.push( entry );
+  geodesic_cube_5["edgeMap"].set( key, { index, faces: entry.faces } );
+  geodesic_cube_5["edgeList"].push( entry );
   return index;
 }
 
-for (let i = 0; i < faceIndexList.length; i++)
+for (let i = 0; i < geodesic_cube_5["faceIndexList"].length; i++)
 {
-  const [ a, b, c, d ] = faceIndexList[ i ];
+  const [ a, b, c, d ] = geodesic_cube_5["faceIndexList"][ i ];
   const e0 = getEdgeIndex( a, b, i );
   const e1 = getEdgeIndex( b, c, i );
   const e2 = getEdgeIndex( c, d, i );
   const e3 = getEdgeIndex( d, a, i );
-  faceList.push({
+  geodesic_cube_5["faceList"].push({
     vertices: [ a, b, c, d ],
     edges: [ e0, e1, e2, e3 ],
     state: 0,
@@ -84,3 +89,8 @@ for (let i = 0; i < faceIndexList.length; i++)
     number: null
   });
 }
+
+function getGeometry() { return geodesic_cube_5; }
+return { getGeometry };
+
+})();

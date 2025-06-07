@@ -8,10 +8,18 @@ const stateList = [ "unknown", "shaded", "unshaded" ];
 const stateColorList = { unknown: "lightgray", shaded: "black", unshaded: "green" };
 const unknownState = 0, shadedState = 1, unshadedState = 2;
 
+let geodesic_cube_5 = window.GeodesicCube5.getGeometry();
+let joined_truncated_icosahedron = window.JoinedTruncatedIcosahedron.getGeometry();
 let perspective = -0.58, fovRatio= 0.8;
 let prevX = 0, prevY = 0;
 let isDragging = false, redraw = true;
 let selectedFace = null;
+
+let canvas = document.querySelector('#canvas');
+let rect = null, scaleX = null, scaleY = null, halfWidth = null, halfHeight = null;
+let rectLeft = null, rectTop = null, aspect = null;
+let undoIdx = 0;
+let undoList = [];
 
 function resetSize()
 {
@@ -28,9 +36,6 @@ function resetSize()
     redraw = true;
 }
 
-let canvas = document.querySelector('#canvas');
-let rect = null, scaleX = null, scaleY = null, halfWidth = null, halfHeight = null;
-let rectLeft = null, rectTop = null, aspect = null;
 resetSize();
 
 const near = 0.1;
@@ -72,9 +77,18 @@ function saveState()
     URL.revokeObjectURL(url);
 }
 
-function loadPuzzle(puzzle)
+function loadPuzzle(geometry, puzzle)
 {
-    doSomething();
+    polyhedronName = geometry["polyhedronName"];
+    edgeMap = geometry["edgeMap"];
+    edgeList = geometry["edgeList"];
+    faceList = geometry["faceList"]
+    defaultVertexList = geometry["defaultVertexList"];
+    faceIndexList = geometry["faceIndexList"];
+    sizeFactor = geometry["sizeFactor"];
+    selectedFace = null;
+    faceList = structuredClone(geometry["faceList"]);
+
     for (const f of puzzle)
     {
         const face = faceList[f.index];
@@ -90,7 +104,15 @@ function loadPuzzle(puzzle)
             face.solution = f.solution;
         face.locked = f.locked;
     }
+    undoIdx = 0;
+    while (undoList.length)
+        undoList.pop();
+    undoList[undoIdx] = structuredClone(faceList);
+
     redraw = true;
+    setValues();
+    resetSize();
+    drawScene();
 }
 
 function showSolution()
@@ -336,7 +358,7 @@ function getProjectionAndModelView()
     const modelViewMatrix = mat4.create();
 
     mat4.perspective(projectionMatrix, perspective / fovRatio, aspect, near, far);
-    mat4.translate(modelViewMatrix, modelViewMatrix, [ 0, 0, -5 ]);
+    mat4.translate(modelViewMatrix, modelViewMatrix, [ 0, 0, sizeFactor ]);
     mat4.scale(modelViewMatrix, modelViewMatrix, [ perspective, perspective, perspective ]);
     mat4.multiply(modelViewMatrix, modelViewMatrix, rotationMatrix);
 
@@ -487,11 +509,17 @@ function main()
         redraw = true;
     });
 
-    document.getElementById("polyhedronName").value = polyhedronName;
-    document.getElementById("numberOfFaces").value = faceList.length;
-    document.getElementById("numberOfEdges").value = edgeList.length;
-    document.getElementById("numberOfVertices").value = defaultVertexList.length;
+    loadPuzzle(geodesic_cube_5, small_puzzle_empty);
+    setValues();
     drawScene();
+}
+
+function setValues()
+{
+    if (polyhedronName) document.getElementById("polyhedronName").value = polyhedronName;
+    if (faceList) document.getElementById("numberOfFaces").value = faceList.length;
+    if (edgeList) document.getElementById("numberOfEdges").value = edgeList.length;
+    if (defaultVertexList) document.getElementById("numberOfVertices").value = defaultVertexList.length;
 }
 
 function pointInFace(p, a, b, c, d)

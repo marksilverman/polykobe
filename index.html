@@ -16,11 +16,15 @@
     <link rel="stylesheet" href="polykobe.css" type="text/css">
     <script src="gl-matrix-min.js" defer></script>
     <script src="glyphs.js" defer></script>
-    <script src="geometry.js" defer></script>
-    <script src="polykobe.js" defer></script>
+    <script src="JoinedTruncatedIcosahedron.js" defer></script>
+    <script src="GeodesicCube5.js" defer></script>
+    <script src="small_puzzle_1.js" defer></script>
+    <script src="small_puzzle_2.js" defer></script>
+    <script src="small_puzzle_hard.js" defer></script>
+    <script src="small_puzzle_empty.js" defer></script>
     <script src="puzzle1.js" defer></script>
     <script src="puzzle2.js" defer></script>
-    <script src="puzzle3.js" defer></script>
+    <script src="polykobe.js" defer></script>
 </head>
 
 <body>
@@ -33,8 +37,11 @@
     <button onclick="saveState()">SAVE FILE</button>
     <button onclick="document.getElementById('fileInput').click()">LOAD FILE</button>
 <br>
-    <button class="red" onclick="loadPuzzle(puzzle1)">LOAD PUZZLE #1</button><br>
-    <button class="red" onclick="loadPuzzle(puzzle2)">LOAD PUZZLE #2</button><br>
+    <button class="orange" onclick="loadPuzzle(geodesic_cube_5, small_puzzle_1)">SMALL PUZZLE #1 (EASY)</button><br>
+    <button class="orange" onclick="loadPuzzle(geodesic_cube_5, small_puzzle_2)">SMALL PUZZLE #2 (MEDIUM)</button><br>
+    <button class="orange" onclick="loadPuzzle(geodesic_cube_5, small_puzzle_hard)">SMALL PUZZLE #3 (HARD)</button><br>
+    <button class="red" onclick="loadPuzzle(joined_truncated_icosahedron, puzzle1)">BIG PUZZLE #1 (MEDIUM)</button><br>
+    <button class="red" onclick="loadPuzzle(joined_truncated_icosahedron, puzzle2)">BIG PUZZLE #2 (HARD)</button><br>
 </div>
 
 <div class="top left oncanvas">
